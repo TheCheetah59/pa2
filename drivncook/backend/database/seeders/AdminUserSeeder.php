@@ -12,9 +12,9 @@ class AdminUserSeeder extends Seeder
     {
         User::create([
             'name' => 'Admin',
-            'email' => 'root',
+            'email' => 'admin@drivncook.test',
             'phone' => '0600000000',
-            'password' => Hash::make('root'), // mot de passe : azerty123
+            'password' => Hash::make('admin123'), // mot de passe :admin123
             'role' => 'admin',
             'franchisee_id' => null,
         ]);
