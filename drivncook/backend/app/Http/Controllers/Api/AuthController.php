@@ -21,10 +21,10 @@ class AuthController extends Controller
         ]);
 
         // Recherche manuelle de l'utilisateur
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->input('email'))->first();
 
         // Vérification du mot de passe
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->input('password'), $user->input('password'))) {
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
