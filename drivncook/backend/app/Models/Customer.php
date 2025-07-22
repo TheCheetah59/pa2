@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Models;
-
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
+
 
 class Customer extends Model
 {
+    use HasApiTokens;
     // Un client peut passer plusieurs commandes
     public function orders()
     {
@@ -17,7 +19,7 @@ class Customer extends Model
     {
         return $this->hasOne(LoyaltyCard::class);
     }
-    
+
     // Un client peut participer à plusieurs événements
     public function events()
     {
