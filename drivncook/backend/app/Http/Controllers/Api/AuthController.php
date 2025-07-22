@@ -1,11 +1,11 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -14,13 +14,21 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        // Validation rapide (tu peux affiner selon tes besoins)
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if (!Auth::attempt($credentials)) {
+        // Recherche manuelle de l'utilisateur
+        $user = User::where('email', $request->email)->first();
+
+        // Vérification du mot de passe
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
-        $user = $request->user();
+        // Création d’un token Sanctum
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
