@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Auth;
 
 class EventRegistrationController extends Controller
 {
@@ -18,7 +19,7 @@ class EventRegistrationController extends Controller
         return response()->json(['message' => 'Inscription enregistrée.']);
     }
 
-    // ❌ Désinscription
+    //  Désinscription
     public function unregister(Request $request, $eventId)
     {
         $customer = $request->user();
@@ -27,11 +28,17 @@ class EventRegistrationController extends Controller
         return response()->json(['message' => 'Désinscription effectuée.']);
     }
 
-    // 👀 Liste des événements du client connecté
+    //  Liste des événements du client connecté
     public function myEvents(Request $request)
     {
-        $customer = $request->user();
-        return response()->json($customer->events()->get());
+        /** @var \App\Models\Customer $customer */
+        $customer = Auth::guard('customer')->user();
+
+        if (!$customer) {
+            return response()->json(['message' => 'Accès réservé aux clients'], 403);
+        }
+
+        return response()->json($customer->events);
     }
 
     // (optionnel) Liste des clients inscrits à un événement
