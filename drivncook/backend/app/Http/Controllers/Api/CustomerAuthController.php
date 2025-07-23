@@ -21,14 +21,15 @@ class CustomerAuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Recherche du client
+        // Recherche du client par e-mail
         $customer = Customer::where('email', $request->input('email'))->first();
 
-        if (!$customer || !Hash::check($request->input('password'), $customer->input('password'))) {
+        // Vérification du mot de passe
+        if (!$customer || !Hash::check($request->input('password'), $customer->password)) {
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
-        // Création du token Sanctum
+        // Création du token API
         $token = $customer->createToken('customer-token')->plainTextToken;
 
         return response()->json([
@@ -38,7 +39,7 @@ class CustomerAuthController extends Controller
     }
 
     /**
-     * Déconnexion API
+     * Déconnexion API du client
      */
     public function logout(Request $request): JsonResponse
     {
@@ -47,5 +48,3 @@ class CustomerAuthController extends Controller
         return response()->json(['message' => 'Déconnexion réussie']);
     }
 }
-
-
