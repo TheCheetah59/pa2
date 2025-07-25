@@ -2,47 +2,49 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TruckMaintenance;
 use Illuminate\Http\Request;
 
 class TruckMaintenanceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return TruckMaintenance::with('truck')->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'truck_id'   => 'required|exists:trucks,id',
+            'date'       => 'required|date',
+            'description'=> 'required|string',
+        ]);
+
+        return TruckMaintenance::create($validated);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        return TruckMaintenance::with('truck')->findOrFail($id);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $maintenance = TruckMaintenance::findOrFail($id);
+
+        $validated = $request->validate([
+            'truck_id'   => 'sometimes|exists:trucks,id',
+            'date'       => 'sometimes|date',
+            'description'=> 'sometimes|string',
+        ]);
+
+        $maintenance->update($validated);
+        return $maintenance;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        TruckMaintenance::destroy($id);
+        return response()->noContent();
     }
 }
