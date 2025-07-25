@@ -3,20 +3,19 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-    Customer::firstOrCreate(
-        ['email' => 'client@drivncook.test'], 
-        [
-            'name' => 'Client Test',
-            'phone' => '0612345678',
-            'password' => Hash::make('client123'),
-        ]
-    );
+        for ($i = 1; $i <= 10; $i++) {
+            Customer::create([
+                'name' => fake()->name(),
+                'email' => fake()->unique()->safeEmail(),
+                'password' => Hash::make('client123'),
+            ]);
+        }
     }
 }
