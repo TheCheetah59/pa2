@@ -2,47 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LoyaltyCard;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\Collection;
 
 class LoyaltyCardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): Collection
     {
-        //
+        return LoyaltyCard::with('customer')->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show($id): LoyaltyCard
     {
-        //
+        return LoyaltyCard::with('customer')->findOrFail($id);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, $id): LoyaltyCard
     {
-        //
-    }
+        $loyaltyCard = LoyaltyCard::findOrFail($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        $validated = $request->validate([
+            'points'       => 'sometimes|integer|min:0',
+            'last_update'  => 'sometimes|date',
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $loyaltyCard->update($validated);
+
+        return $loyaltyCard->load('customer');
     }
 }
