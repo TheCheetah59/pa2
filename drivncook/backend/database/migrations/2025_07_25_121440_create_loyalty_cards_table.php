@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('loyalty_cards', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
+            $table->integer('points')->default(0);
+            $table->dateTime('last_update')->nullable();
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.
