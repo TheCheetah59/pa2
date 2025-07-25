@@ -9,6 +9,23 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\EventRegistrationController;
 
+use App\Http\Controllers\FranchiseeController;
+use App\Http\Controllers\TruckController;
+use App\Http\Controllers\TruckMaintenanceController;
+
+use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\StockItemController;
+use App\Http\Controllers\StockOrderController;
+use App\Http\Controllers\StockOrderItemController;
+
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemController;
+
+use App\Http\Controllers\LoyaltyCardController;
+use App\Http\Controllers\NewsletterLogController;
+
+
 // Authentification
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/customer/login', [CustomerAuthController::class, 'login']);
