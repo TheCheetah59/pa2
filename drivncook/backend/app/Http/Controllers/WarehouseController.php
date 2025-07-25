@@ -2,47 +2,50 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
 class WarehouseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return Warehouse::with('stockItems')->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name'    => 'required|string|max:255',
+            'address' => 'required|string',
+            'region'  => 'required|string',
+        ]);
+
+        return Warehouse::create($validated);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        return Warehouse::with('stockItems')->findOrFail($id);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $warehouse = Warehouse::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'    => 'sometimes|string|max:255',
+            'address' => 'sometimes|string',
+            'region'  => 'sometimes|string',
+        ]);
+
+        $warehouse->update($validated);
+        return $warehouse;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        Warehouse::destroy($id);
+        return response()->noContent();
     }
 }
+
