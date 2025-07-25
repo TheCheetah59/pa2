@@ -83,7 +83,6 @@ class OrderController extends Controller
             $total = 0;
 
             if (!empty($validated['items'])) {
-                // Supprimer les anciens items
                 $order->items()->delete();
 
                 foreach ($validated['items'] as $item) {
@@ -107,6 +106,7 @@ class OrderController extends Controller
             return $order->load(['customer', 'items.menu']);
         });
     }
+
 
     public function destroy($id): Response
     {
