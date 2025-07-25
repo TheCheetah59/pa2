@@ -2,47 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Franchisee;
 use Illuminate\Http\Request;
 
 class FranchiseeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function index() { return Franchisee::all(); }
+
+    public function store(Request $request) {
+        $validated = $request->validate([]);
+        return Franchisee::create($validated);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    public function show($id) { return Franchisee::findOrFail($id); }
+
+    public function update(Request $request, $id) {
+        $item = Franchisee::findOrFail($id);
+        $item->update($request->all());
+        return $item;
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+    public function destroy($id) {
+        Franchisee::destroy($id);
+        return response()->noContent();
     }
 }
+
