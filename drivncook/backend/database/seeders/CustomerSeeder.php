@@ -10,11 +10,13 @@ class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-        Customer::create([
+    Customer::firstOrCreate(
+        ['email' => 'client@drivncook.test'], 
+        [
             'name' => 'Client Test',
-            'email' => 'client@drivncook.test',
             'phone' => '0612345678',
             'password' => Hash::make('client123'),
-        ]);
+        ]
+    );
     }
 }

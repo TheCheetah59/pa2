@@ -19,5 +19,9 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
         ]);
 
+        $this->call([
+            EventSeeder::class,
+        ]);
+
     }
 }

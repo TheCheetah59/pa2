@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Auth;
 
 class EventRegistrationController extends Controller
 {
-    // ✅ Inscription d’un client à un événement
+    // Inscription d’un client à un événement
     public function register(Request $request, $eventId)
     {
         $customer = $request->user(); // supposé être un client authentifié via Sanctum
         $customer->events()->syncWithoutDetaching([$eventId]);
 
-        return response()->json(['message' => 'Inscription enregistrée.']);
+        return response()->json(['message' => 'Inscription effectuer.']);
     }
 
     //  Désinscription
@@ -25,7 +25,7 @@ class EventRegistrationController extends Controller
         $customer = $request->user();
         $customer->events()->detach($eventId);
 
-        return response()->json(['message' => 'Désinscription effectuée.']);
+        return response()->json(['message' => 'Désinscription effectuer.']);
     }
 
     //  Liste des événements du client connecté

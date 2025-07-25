@@ -10,13 +10,16 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@drivncook.test',
-            'phone' => '0600000000',
-            'password' => Hash::make('admin123'), // mot de passe :admin123
-            'role' => 'admin',
-            'franchisee_id' => null,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@drivncook.test'], // condition
+            [
+                'name' => 'Admin',
+                'phone' => '0600000000',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'franchisee_id' => null,
+            ]
+        );
+
     }
 }
