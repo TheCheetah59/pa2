@@ -2,19 +2,31 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
-    // Une ligne de commande appartient à une commande
-    public function order()
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id', 'menu_id', 'quantity', 'price_unit',
+    ];
+
+    protected $casts = [
+        'price_unit' => 'decimal:2',
+    ];
+
+    /** @return BelongsTo<Order,OrderItem> */
+    public function order(): BelongsTo
     {
-        return $this->belongsTo(CustomerOrder::class);
+        return $this->belongsTo(Order::class);
     }
 
-    // Une ligne de commande est liée à un plat
-    public function dish()
+    /** @return BelongsTo<Menu,OrderItem> */
+    public function menu(): BelongsTo
     {
-        return $this->belongsTo(Dish::class);
+        return $this->belongsTo(Menu::class);
     }
 }
