@@ -2,47 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Menu;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\Collection;
 
 class MenuController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): Collection
     {
-        //
+        return Menu::all();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request): Menu
     {
-        //
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price'       => 'required|numeric|min:0',
+            'is_active'   => 'boolean',
+        ]);
+
+        return Menu::create($validated);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show($id): Menu
     {
-        //
+        return Menu::findOrFail($id);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id): Menu
     {
-        //
+        $menu = Menu::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'        => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'price'       => 'sometimes|numeric|min:0',
+            'is_active'   => 'boolean',
+        ]);
+
+        $menu->update($validated);
+        return $menu;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id): Response
     {
-        //
+        Menu::destroy($id);
+        return response()->noContent();
     }
+
+
+
 }
