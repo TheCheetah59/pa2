@@ -16,6 +16,27 @@ Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 // Routes accessibles après authentification
 Route::middleware(['auth:sanctum'])->group(function () {
 
+    // Franchisees & Trucks
+    Route::apiResource('franchisees', FranchiseeController::class);
+    Route::apiResource('trucks', TruckController::class);
+    Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
+
+    // Stock
+    Route::apiResource('warehouses', WarehouseController::class);
+    Route::apiResource('stock-items', StockItemController::class);
+    Route::apiResource('stock-orders', StockOrderController::class);
+    Route::apiResource('stock-order-items', StockOrderItemController::class);
+
+    // Menus & commandes clients
+    Route::apiResource('menus', MenuController::class);
+    Route::apiResource('orders', OrderController::class);
+    Route::apiResource('order-items', OrderItemController::class);
+
+    // Fidélité & newsletter
+    Route::apiResource('loyalty-cards', LoyaltyCardController::class)->only(['index', 'show', 'update']);
+    Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['index', 'store']);
+
+
     // Routes génériques
     Route::get('/profile', fn (Request $request) => $request->user());
 
