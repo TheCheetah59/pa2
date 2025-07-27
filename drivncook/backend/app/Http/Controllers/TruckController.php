@@ -16,9 +16,13 @@ class TruckController extends Controller
     {
         $validated = $request->validate([
             'franchisee_id' => 'required|exists:franchisees,id',
-            'registration'  => 'required|string|unique:trucks,registration',
-            'status'        => 'required|in:ok,en_panne,en_maintenance',
-            'location'      => 'nullable|string',
+            'plate_number' => 'required|string|unique:trucks,plate_number',  // ← Corrigé
+            'model' => 'required|string',                                    // ← Ajouté
+            'current_location' => 'nullable|string',                         // ← Corrigé
+            'status' => 'required|in:ok,en_panne,en_maintenance',
+            'last_service_date' => 'nullable|date',                         // ← Ajouté
+            'next_service_due' => 'nullable|date',                          // ← Ajouté
+            'notes' => 'nullable|string',                                   // ← Ajouté
         ]);
 
         return Truck::create($validated);
@@ -35,9 +39,13 @@ class TruckController extends Controller
 
         $validated = $request->validate([
             'franchisee_id' => 'sometimes|exists:franchisees,id',
-            'registration'  => 'sometimes|string|unique:trucks,registration,' . $id,
-            'status'        => 'sometimes|in:ok,en_panne,en_maintenance',
-            'location'      => 'sometimes|nullable|string',
+            'plate_number' => 'sometimes|string|unique:trucks,plate_number,' . $id,  
+            'model' => 'sometimes|string',                                          
+            'current_location' => 'sometimes|nullable|string',                       
+            'status' => 'sometimes|in:ok,en_panne,en_maintenance',
+            'last_service_date' => 'sometimes|nullable|date',                       
+            'next_service_due' => 'sometimes|nullable|date',                        
+            'notes' => 'sometimes|nullable|string',                                 
         ]);
 
         $truck->update($validated);
