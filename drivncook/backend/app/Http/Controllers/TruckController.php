@@ -17,7 +17,7 @@ class TruckController extends Controller
         $validated = $request->validate([
             'franchisee_id' => 'required|exists:franchisees,id',
             'registration'  => 'required|string|unique:trucks,registration',
-            'status'        => 'in:ok,en_panne,en_maintenance',
+            'status'        => 'required|in:ok,en_panne,en_maintenance',
             'location'      => 'nullable|string',
         ]);
 
@@ -36,8 +36,8 @@ class TruckController extends Controller
         $validated = $request->validate([
             'franchisee_id' => 'sometimes|exists:franchisees,id',
             'registration'  => 'sometimes|string|unique:trucks,registration,' . $id,
-            'status'        => 'in:ok,en_panne,en_maintenance',
-            'location'      => 'nullable|string',
+            'status'        => 'sometimes|in:ok,en_panne,en_maintenance',
+            'location'      => 'sometimes|nullable|string',
         ]);
 
         $truck->update($validated);
@@ -46,7 +46,8 @@ class TruckController extends Controller
 
     public function destroy($id)
     {
-        Truck::destroy($id);
+        $truck = Truck::findOrFail($id);
+        $truck->delete();
         return response()->noContent();
     }
 }
