@@ -23,12 +23,12 @@ class AuthController extends Controller
         // Recherche manuelle de l'utilisateur
         $user = User::where('email', $request->input('email'))->first();
 
-        // Vérification du mot de passe
-        if (!$user || !Hash::check($request->input('password'), $user->input('password'))) {
+        // Vérification du mot de passe - CORRIGÉ ICI
+        if (!$user || !Hash::check($request->input('password'), $user->password)) {
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
-        // Création d’un token Sanctum
+        // Création d'un token Sanctum
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
