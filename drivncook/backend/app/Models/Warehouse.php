@@ -11,7 +11,16 @@ class Warehouse extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'address', 'region',
+        'name',
+        'address',
+        'postal_code',
+        'city',
+        'region',
+        'phone',
+        'manager_name',
+        'email',
+        'capacity',
+        'kitchen_available'
     ];
 
     /** @return HasMany<StockItem> */
