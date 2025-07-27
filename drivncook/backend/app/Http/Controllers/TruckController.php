@@ -24,7 +24,7 @@ class TruckController extends Controller
             'notes' => 'nullable|string',                                  
         ]);
 
-        $truck = Truck::create($request->all());
+        $truck = Truck::create($validated);
         return response()->json($truck, 201); 
     }
 
