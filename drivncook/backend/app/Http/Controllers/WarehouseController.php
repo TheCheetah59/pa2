@@ -39,15 +39,21 @@ class WarehouseController extends Controller
         $warehouse = Warehouse::findOrFail($id);
 
         $validated = $request->validate([
-            'name'    => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:255',
             'address' => 'sometimes|string',
-            'region'  => 'sometimes|string',
+            'postal_code' => 'sometimes|string|max:10',
+            'city' => 'sometimes|string|max:255',
+            'region' => 'sometimes|string',
+            'phone' => 'sometimes|string|max:20',
+            'manager_name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255',
+            'capacity' => 'sometimes|integer|min:0',      
+            'kitchen_available' => 'sometimes|boolean'    
         ]);
 
         $warehouse->update($validated);
         return $warehouse;
     }
-
     public function destroy($id)
     {
         Warehouse::destroy($id);
