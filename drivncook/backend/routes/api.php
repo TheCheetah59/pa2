@@ -1,6 +1,5 @@
 <?php
 
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +24,14 @@ use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\NewsletterLogController;
 
+// Test route (without auth)
+Route::get('/test', function () {
+    return response()->json(['message' => 'API works']);
+});
+
+// Routes without auth for testing
+Route::apiResource('warehouses', WarehouseController::class);
+Route::apiResource('trucks', TruckController::class);
 
 // Authentification
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,14 +39,11 @@ Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 
 // Routes accessibles après authentification
 Route::middleware(['auth:sanctum'])->group(function () {
-
     // Franchisees & Trucks
     Route::apiResource('franchisees', FranchiseeController::class);
-    Route::apiResource('trucks', TruckController::class);
     Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
 
     // Stock
-    Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('stock-items', StockItemController::class);
     Route::apiResource('stock-orders', StockOrderController::class);
     Route::apiResource('stock-order-items', StockOrderItemController::class);
@@ -52,7 +56,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Fidélité & newsletter
     Route::apiResource('loyalty-cards', LoyaltyCardController::class)->only(['index', 'show', 'update']);
     Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['index', 'store']);
-
 
     // Routes génériques
     Route::get('/profile', fn (Request $request) => $request->user());

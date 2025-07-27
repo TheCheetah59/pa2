@@ -12,9 +12,10 @@ class Franchisee extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'address', 'joined_at', 'active', 'password',
+        'name', 'email', 'phone', 'address', 'city', 'postal_code', 
+        'country', 'siret_number', 'franchise_code', 'entry_fee_paid', 
+        'sales_percentage'
     ];
-
     protected $hidden = ['password'];
 
     protected $casts = [
