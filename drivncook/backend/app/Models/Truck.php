@@ -12,7 +12,14 @@ class Truck extends Model
     use HasFactory;
 
     protected $fillable = [
-        'franchisee_id', 'registration', 'status', 'location',
+        'franchisee_id',
+        'plate_number',      
+        'model',             
+        'current_location', 
+        'status',
+        'last_service_date', 
+        'next_service_due',  
+        'notes',             
     ];
 
     /** @return BelongsTo<Franchisee,Truck> */
