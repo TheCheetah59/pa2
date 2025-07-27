@@ -19,8 +19,7 @@ class Franchisee extends Model
     protected $hidden = ['password'];
 
     protected $casts = [
-        'joined_at' => 'datetime',
-        'active' => 'boolean',
+        'entry_fee_paid' => 'boolean',
     ];
 
     /** @return HasMany<Truck> */
