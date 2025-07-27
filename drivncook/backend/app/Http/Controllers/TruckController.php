@@ -16,13 +16,12 @@ class TruckController extends Controller
     {
         $validated = $request->validate([
             'franchisee_id' => 'required|exists:franchisees,id',
-            'plate_number' => 'required|string|unique:trucks,plate_number',  // ← Corrigé
-            'model' => 'required|string',                                    // ← Ajouté
-            'current_location' => 'nullable|string',                         // ← Corrigé
+            'plate_number' => 'required|string|unique:trucks,plate_number',  
+            'model' => 'required|string',                                    
+            'current_location' => 'nullable|string',                         
             'status' => 'required|in:ok,en_panne,en_maintenance',
-            'last_service_date' => 'nullable|date',                         // ← Ajouté
-            'next_service_due' => 'nullable|date',                          // ← Ajouté
-            'notes' => 'nullable|string',                                   // ← Ajouté
+            'last_service_date' => 'nullable|date',                         
+            'notes' => 'nullable|string',                                  
         ]);
 
         $truck = Truck::create($validated);
