@@ -15,14 +15,22 @@ class TruckController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'franchisee_id' => 'required|exists:franchisees,id',
-            'plate_number' => 'required|string|unique:trucks,plate_number',  
-            'model' => 'required|string',                                    
-            'current_location' => 'nullable|string',                         
-            'status' => 'required|in:ok,en_panne,en_maintenance',
-            'last_service_date' => 'nullable|date',                         
-            'notes' => 'nullable|string',                                  
+            'franchisee_id'     => 'required|exists:franchisees,id',
+            'plate_number'      => 'required|string|unique:trucks,plate_number',
+            'model'             => 'required|string',
+            'current_location'  => 'nullable|string',
+            'status'            => 'required|in:en_service,en_panne,entretien',
+            'last_service_date' => 'nullable|date',
+            'next_service_due'  => 'nullable|date',
+            'notes'             => 'nullable|string',
         ]);
+
+        
+        foreach (['plate_number', 'model', 'current_location', 'notes'] as $field) {
+            if (isset($validated[$field])) {
+                $validated[$field] = str_replace(["\r", "\n"], '', $validated[$field]);
+            }
+        }
 
         $truck = Truck::create($validated);
         return response()->json($truck, 201); 
@@ -38,14 +46,14 @@ class TruckController extends Controller
         $truck = Truck::findOrFail($id);
 
         $validated = $request->validate([
-            'franchisee_id' => 'sometimes|exists:franchisees,id',
-            'plate_number' => 'sometimes|string|unique:trucks,plate_number,' . $id,  
-            'model' => 'sometimes|string',                                          
-            'current_location' => 'sometimes|nullable|string',                       
-            'status' => 'sometimes|in:ok,en_panne,en_maintenance',
-            'last_service_date' => 'sometimes|nullable|date',                       
-            'next_service_due' => 'sometimes|nullable|date',                        
-            'notes' => 'sometimes|nullable|string',                                 
+            'franchisee_id'     => 'sometimes|exists:franchisees,id',
+            'plate_number'      => 'sometimes|string|unique:trucks,plate_number,' . $id,
+            'model'             => 'sometimes|string',
+            'current_location'  => 'sometimes|nullable|string',
+            'status'            => 'sometimes|in:en_service,en_panne,entretien',
+            'last_service_date' => 'sometimes|nullable|date',
+            'next_service_due'  => 'sometimes|nullable|date',
+            'notes'             => 'sometimes|nullable|string',
         ]);
 
         $truck->update($validated);
