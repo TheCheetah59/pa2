@@ -1,0 +1,150 @@
+{
+  "info": {
+    "name": "DrivnCook - Warehouses API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin2@drivncook.test\",\n  \"password\": \"admin133\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Warehouses",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/warehouses",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "warehouses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Warehouse",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Entrep\\u00f4t Nord\",\n  \"address\": \"12 rue de la Gare, Paris\",\n  \"postal_code\": \"75012\",\n  \"city\": \"Paris\",\n  \"region\": \"\\u00cele-de-France\",\n  \"phone\": \"0102030405\",\n  \"manager_name\": \"Jean Dupont\",\n  \"email\": \"entrepotnord@drivncook.test\",\n  \"capacity\": 2000,\n  \"kitchen_available\": true\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/warehouses",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "warehouses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Warehouse",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{10|I6ja8FPdZA8ta3QK4BfxsJqgogKr2nllX4gKGNBx0800b40f}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"capacity\": 3000\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/warehouses/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "warehouses",
+            "1"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Warehouse",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/warehouses/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "warehouses",
+            "1"
+          ]
+        }
+      }
+    }
+  ]
+}
