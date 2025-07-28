@@ -2,8 +2,11 @@
  
  namespace App\Http\Controllers;
  
- use App\Models\Franchisee;
- use Illuminate\Http\Request;
+use App\Models\Franchisee;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\View;
+
  
  class FranchiseeController extends Controller
  {
@@ -57,6 +60,16 @@
             return $franchisee;
  
      }
+
+
+
+        public function generatePdf($id)
+        {
+            $franchisee = Franchisee::with('trucks')->findOrFail($id);
+            $pdf = Pdf::loadView('pdf.franchisee_report', compact('franchisee'));
+            return $pdf->download("rapport_{$franchisee->franchise_code}.pdf");
+        }
+
  
         public function destroy($id) {
             $franchisee = Franchisee::findOrFail($id);

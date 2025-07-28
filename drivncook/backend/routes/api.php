@@ -66,6 +66,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Espace Admin
     Route::get('/admin/dashboard', fn () => response()->json(['message' => 'Bienvenue Admin']));
 
+    // Génération de PDF pour les franchisees
+    Route::get('/franchisees/{id}/pdf', [FranchiseeController::class, 'generatePdf']);
+
     // Événements (Client)
     Route::get('/my-events', [EventRegistrationController::class, 'myEvents']);
     Route::post('/events/{event}/register', [EventRegistrationController::class, 'register']);
