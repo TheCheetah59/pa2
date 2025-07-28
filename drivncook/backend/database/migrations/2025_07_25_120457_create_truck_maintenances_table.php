@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('truck_maintenances', function (Blueprint $table) {
         $table->id();
         $table->foreignId('truck_id')->constrained()->onDelete('cascade');
-        $table->dateTime('date');
+        $table->date('date');
         $table->text('description');
         $table->timestamps();
 });

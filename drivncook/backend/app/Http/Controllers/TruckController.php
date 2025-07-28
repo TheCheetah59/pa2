@@ -54,4 +54,16 @@ public function update(Request $request, $id)
         $truck->delete();
         return response()->noContent();
     }
+
+      /* public function show($id)
+    { méthoide finale non utilisée
+        return Truck::with('franchisee', 'maintenances')->findOrFail($id);
+    } */ 
+
+    public function show($id)
+    {
+        return Truck::findOrFail($id);
+    }
+
+
 }
