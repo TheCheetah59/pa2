@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,10 +15,13 @@ class Franchisee extends Model
         'country', 'siret_number', 'franchise_code', 'entry_fee_paid', 
         'sales_percentage'
     ];
-    protected $hidden = ['password'];
+
+    // Retirez cette ligne si vous n'avez pas de champ password
+    // protected $hidden = ['password'];
 
     protected $casts = [
         'entry_fee_paid' => 'boolean',
+        'sales_percentage' => 'decimal:2',
     ];
 
     /** @return HasMany<Truck> */
