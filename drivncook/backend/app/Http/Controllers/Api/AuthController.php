@@ -41,8 +41,13 @@ class AuthController extends Controller
      * Déconnexion - supprime le token courant
      */
     public function logout(Request $request)
+
     {
-        $request->user()->currentAccessToken()->delete();
+        // Suppression du token courant si présent
+        $token = $request->user()->currentAccessToken();
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
 
         return response()->json(['message' => 'Déconnexion réussie']);
     }
