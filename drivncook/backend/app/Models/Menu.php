@@ -24,4 +24,8 @@ class Menu extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function dishes() {
+        return $this->hasMany(Dish::class);
+    }
 }

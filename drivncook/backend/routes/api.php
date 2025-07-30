@@ -24,6 +24,13 @@ use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\LoyaltyCardController;
 use App\Http\Controllers\NewsletterLogController;
 
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerOrderController;
+use App\Http\Controllers\DishController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\CustomerFeedbackController;
+use App\Http\Controllers\NewsletterController;
+
 // Test route (without auth)
 Route::get('/test', function () {
     return response()->json(['message' => 'API works']);
@@ -74,4 +81,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/events/{event}/register', [EventRegistrationController::class, 'register']);
     Route::delete('/events/{event}/unregister', [EventRegistrationController::class, 'unregister']);
     Route::get('/events/{event}/participants', [EventRegistrationController::class, 'eventParticipants']);
+
+    // CLIENT
+    Route::apiResource('customers', CustomerController::class)->only(['index', 'update', 'destroy']);
+    Route::apiResource('customer-orders', CustomerOrderController::class)->only(['index', 'store', 'show']);
+    Route::apiResource('feedback', CustomerFeedbackController::class)->only(['store']);
+  
+
+
 });
+
+    // Public
+    Route::apiResource('menus', MenuController::class)->only(['index', 'show']);
+    Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
+    Route::apiResource('events', EventController::class)->only(['index']);
+    Route::post('/customers', [CustomerController::class, 'store']); // inscription client

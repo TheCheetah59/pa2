@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Europe/Paris',
 
     /*
     |--------------------------------------------------------------------------
@@ -127,5 +127,6 @@ return [
 
     'Pdf' => Barryvdh\DomPDF\Facade\Pdf::class,
     ],
+
 
 ];

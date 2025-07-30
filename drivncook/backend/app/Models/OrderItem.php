@@ -24,6 +24,10 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function dish() {
+        return $this->belongsTo(Dish::class);
+    }
+
     /** @return BelongsTo<Menu,OrderItem> */
     public function menu(): BelongsTo
     {
