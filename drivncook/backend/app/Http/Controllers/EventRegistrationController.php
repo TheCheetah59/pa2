@@ -32,6 +32,7 @@ class EventRegistrationController extends Controller
     public function myEvents()
     {
         $customer = Auth::guard('customer')->user();
+         dd(get_class($customer)); // Ajoute ceci pour voir le type retourné
 
         return $customer->events()->with('pivot')->get();
     }

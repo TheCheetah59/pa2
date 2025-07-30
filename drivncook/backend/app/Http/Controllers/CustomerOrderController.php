@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\CustomerOrder;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Customer;
+
+
 
 class CustomerOrderController extends Controller
 {
@@ -12,7 +15,7 @@ class CustomerOrderController extends Controller
     public function index()
     {
         $customer = Auth::guard('customer')->user();
-
+        dd(get_class($customer)); 
         return $customer->orders()->with('items.dish')->latest()->get();
     }
 

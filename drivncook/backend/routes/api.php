@@ -31,70 +31,127 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\NewsletterController;
 
-// Test route (without auth)
+/*
+|--------------------------------------------------------------------------
+| Routes publiques (sans authentification)
+|--------------------------------------------------------------------------
+*/
+
+// Test route
 Route::get('/test', function () {
     return response()->json(['message' => 'API works']);
 });
 
-// Routes without auth for testing
+// Routes publiques pour consultation
+Route::apiResource('menus', MenuController::class)->only(['index', 'show']);
+Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
+Route::apiResource('events', EventController::class)->only(['index']);
+
+// Routes sans auth pour testing (à supprimer en production)
 Route::apiResource('warehouses', WarehouseController::class);
 Route::apiResource('trucks', TruckController::class);
 
-// Authentification
+// Inscription client (publique)
+Route::post('/customers', [CustomerController::class, 'store']);
+
+/*
+|--------------------------------------------------------------------------
+| Authentification
+|--------------------------------------------------------------------------
+*/
+
+// Login admin/staff
 Route::post('/login', [AuthController::class, 'login']);
+
+// Login client
 Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 
-// Routes accessibles après authentification
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Franchisees & Trucks
-    Route::apiResource('franchisees', FranchiseeController::class);
-    Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
+/*
+|--------------------------------------------------------------------------
+| Routes ADMIN/STAFF (auth:sanctum - utilise le modèle User)
+|--------------------------------------------------------------------------
+*/
 
-    // Stock
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Profile admin/staff
+    Route::get('/profile', fn (Request $request) => $request->user());
+    
+    // Déconnexion admin/staff
+    Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // Dashboard admin
+    Route::get('/admin/dashboard', fn () => response()->json(['message' => 'Bienvenue Admin']));
+    
+    // Gestion des franchisés
+    Route::apiResource('franchisees', FranchiseeController::class);
+    Route::get('/franchisees/{id}/pdf', [FranchiseeController::class, 'generatePdf']);
+    
+    // Gestion des camions
+    Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
+    
+    // Gestion du stock
     Route::apiResource('stock-items', StockItemController::class);
     Route::apiResource('stock-orders', StockOrderController::class);
     Route::apiResource('stock-order-items', StockOrderItemController::class);
-
-    // Menus & commandes clients
-    Route::apiResource('menus', MenuController::class);
+    
+    // Gestion des menus (admin)
+    Route::apiResource('menus', MenuController::class)->except(['index', 'show']);
+    Route::apiResource('dishes', DishController::class)->except(['index', 'show']);
+    
+    // Gestion des commandes (admin)
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('order-items', OrderItemController::class);
+    
+    // Gestion des cartes de fidélité (admin)
+    Route::apiResource('loyalty-cards', LoyaltyCardController::class);
+    
+    // Newsletter (admin)
+    Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['index']);
+    Route::post('/newsletters/send', [NewsletterController::class, 'send']);
+    
+    // Gestion des événements (admin)
+    Route::apiResource('events', EventController::class)->except(['index']);
+    Route::get('/events/{event}/participants', [EventRegistrationController::class, 'eventParticipants']);
+    
+    // Gestion des clients (admin)
+    Route::apiResource('customers', CustomerController::class)->only(['index']);
+    
+});
 
-    // Fidélité & newsletter
-    Route::apiResource('loyalty-cards', LoyaltyCardController::class)->only(['index', 'show', 'update']);
-    Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['index', 'store']);
+/*
+|--------------------------------------------------------------------------
+| Routes CLIENT (auth:customer - utilise le modèle Customer)
+|--------------------------------------------------------------------------
+*/
 
-    // Routes génériques
-    Route::get('/profile', fn (Request $request) => $request->user());
-
-    // Déconnexion
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    // Espace Admin
-    Route::get('/admin/dashboard', fn () => response()->json(['message' => 'Bienvenue Admin']));
-
-    // Génération de PDF pour les franchisees
-    Route::get('/franchisees/{id}/pdf', [FranchiseeController::class, 'generatePdf']);
-
-    // Événements (Client)
+Route::middleware(['auth:customer'])->group(function () {
+    
+    // Profile client
+    Route::get('/customer/profile', fn (Request $request) => $request->user('customer'));
+    
+    // Déconnexion client
+    Route::post('/customer/logout', [CustomerAuthController::class, 'logout']);
+    
+    // Gestion du compte client
+    Route::apiResource('customers', CustomerController::class)->only(['show', 'update', 'destroy']);
+    
+    // Commandes du client
+    Route::apiResource('customer-orders', CustomerOrderController::class)->only(['index', 'store', 'show']);
+    
+    // Carte de fidélité du client
+    Route::get('/my-loyalty-card', [LoyaltyCardController::class, 'show']);
+    Route::put('/my-loyalty-card', [LoyaltyCardController::class, 'update']);
+    
+    // Événements du client
     Route::get('/my-events', [EventRegistrationController::class, 'myEvents']);
     Route::post('/events/{event}/register', [EventRegistrationController::class, 'register']);
     Route::delete('/events/{event}/unregister', [EventRegistrationController::class, 'unregister']);
-    Route::get('/events/{event}/participants', [EventRegistrationController::class, 'eventParticipants']);
-
-    // CLIENT
-    Route::apiResource('customers', CustomerController::class)->only(['index', 'update', 'destroy']);
-    Route::apiResource('customer-orders', CustomerOrderController::class)->only(['index', 'store', 'show']);
+    
+    // Feedback client
     Route::apiResource('feedback', CustomerFeedbackController::class)->only(['store']);
-
-    Route::post('/newsletters/send', [NewsletterController::class, 'send']);
-  
-
-
+    
+    // Newsletter (inscription client)
+    Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['store']);
+    
 });
-
-    // Public
-    Route::apiResource('menus', MenuController::class)->only(['index', 'show']);
-    Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
-    Route::apiResource('events', EventController::class)->only(['index']);
-    Route::post('/customers', [CustomerController::class, 'store']); // inscription client
