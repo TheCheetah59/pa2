@@ -31,15 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('dishes', function (Blueprint $table) {
-            $table->dropColumn([
-                'name_fr',
-                'name_en',
-                'description_fr',
-                'description_en',
-                'image_url',
-                'available',
-            ]);
-        });
+         Schema::dropIfExists('dishes');
     }
 };

@@ -66,7 +66,7 @@ use Illuminate\Support\Facades\View;
         public function generatePdf($id)
         {
             $franchisee = Franchisee::with('trucks')->findOrFail($id);
-            $pdf = Pdf::loadView('pdf.franchisee_report', compact('franchisee'));
+            $pdf = Pdf::loadView('franchisee-report.blade', compact('franchisee'));
             return $pdf->download("rapport_{$franchisee->franchise_code}.pdf");
         }
 
