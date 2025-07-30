@@ -14,8 +14,13 @@ class CustomerOrderController extends Controller
     // GET /api/customer-orders
     public function index()
     {
+        /** @var \App\Models\Customer $customer */
         $customer = Auth::guard('customer')->user();
-        dd(get_class($customer)); 
+        
+        if (!$customer) {
+            return response()->json(['error' => 'Non authentifié'], 401);
+        }
+        
         return $customer->orders()->with('items.dish')->latest()->get();
     }
 
