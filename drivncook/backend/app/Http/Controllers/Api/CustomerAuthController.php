@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use App\Models\Customer;
+use Laravel\Sanctum\PersonalAccessToken;
+
 
 class CustomerAuthController extends Controller
 {
@@ -43,8 +45,20 @@ class CustomerAuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        /** @var PersonalAccessToken|null $token */
+        $token = $request->user()?->currentAccessToken();
 
-        return response()->json(['message' => 'Déconnexion réussie']);
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+
+            return response()->json([
+                'message' => 'Déconnexion réussie'
+            ]);
+        }
+
+        return response()->json([
+            'error' => 'Aucun token actif trouvé'
+        ], 401);
     }
+
 }
