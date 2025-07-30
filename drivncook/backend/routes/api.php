@@ -86,6 +86,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('customers', CustomerController::class)->only(['index', 'update', 'destroy']);
     Route::apiResource('customer-orders', CustomerOrderController::class)->only(['index', 'store', 'show']);
     Route::apiResource('feedback', CustomerFeedbackController::class)->only(['store']);
+
+    Route::post('/newsletters/send', [NewsletterController::class, 'send']);
   
 
 
