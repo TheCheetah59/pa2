@@ -7,26 +7,51 @@ use App\Models\Dish;
 
 class DishController extends Controller
 {
-    // GET /api/dishes
-    public function index()
+    // GET /api/dishes?lang=fr
+    public function index(Request $request)
     {
-        return Dish::all();
+        $lang = $request->query('lang', 'fr');
+
+        $dishes = Dish::where('available', true)->get()->map(function ($dish) use ($lang) {
+            return [
+                'id' => $dish->id,
+                'name' => $dish->getTranslated('name', $lang),
+                'description' => $dish->getTranslated('description', $lang),
+                'price' => $dish->price,
+                'image_url' => $dish->image_url,
+            ];
+        });
+
+        return response()->json($dishes);
     }
 
-    // GET /api/dishes/{id}
-    public function show($id)
+    // GET /api/dishes/{id}?lang=fr
+    public function show(Request $request, $id)
     {
-        return Dish::findOrFail($id);
+        $dish = Dish::findOrFail($id);
+        $lang = $request->query('lang', 'fr');
+
+        return response()->json([
+            'id' => $dish->id,
+            'name' => $dish->getTranslated('name', $lang),
+            'description' => $dish->getTranslated('description', $lang),
+            'price' => $dish->price,
+            'image_url' => $dish->image_url,
+        ]);
     }
 
-    // POST /api/dishes
+    // POST /api/dishes (admin)
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
+            'menu_id' => 'required|exists:menus,id',
+            'name_fr' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'description_fr' => 'nullable|string|max:1000',
+            'description_en' => 'nullable|string|max:1000',
             'price' => 'required|numeric|min:0',
-            'category' => 'nullable|string|max:100',
+            'image_url' => 'nullable|string',
+            'available' => 'boolean',
         ]);
 
         $dish = Dish::create($validated);
@@ -34,16 +59,20 @@ class DishController extends Controller
         return response()->json($dish, 201);
     }
 
-    // PUT /api/dishes/{id}
+    // PUT /api/dishes/{id} (admin)
     public function update(Request $request, $id)
     {
         $dish = Dish::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string|max:1000',
+            'menu_id' => 'sometimes|exists:menus,id',
+            'name_fr' => 'sometimes|string|max:255',
+            'name_en' => 'sometimes|string|max:255',
+            'description_fr' => 'nullable|string|max:1000',
+            'description_en' => 'nullable|string|max:1000',
             'price' => 'sometimes|numeric|min:0',
-            'category' => 'nullable|string|max:100',
+            'image_url' => 'nullable|string',
+            'available' => 'boolean',
         ]);
 
         $dish->update($validated);
@@ -51,12 +80,12 @@ class DishController extends Controller
         return response()->json($dish);
     }
 
-    // DELETE /api/dishes/{id}
+    // DELETE /api/dishes/{id} (admin)
     public function destroy($id)
     {
         $dish = Dish::findOrFail($id);
         $dish->delete();
 
-        return response()->json(['message' => 'Plat supprimé'], 204);
+        return response()->json(['message' => 'Plat supprimé avec succès.'], 200);
     }
 }

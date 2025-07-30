@@ -14,9 +14,13 @@ return new class extends Migration
         Schema::create('dishes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('menu_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->text('description')->nullable();
+            $table->string('name_fr');
+            $table->string('name_en');
+            $table->text('description_fr')->nullable();
+            $table->text('description_en')->nullable();
             $table->decimal('price', 6, 2);
+            $table->string('image_url')->nullable();
+            $table->boolean('available')->default(true);
             $table->timestamps();
         });
     }
@@ -27,6 +31,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dishes');
+        Schema::table('dishes', function (Blueprint $table) {
+            $table->dropColumn([
+                'name_fr',
+                'name_en',
+                'description_fr',
+                'description_en',
+                'image_url',
+                'available',
+            ]);
+        });
     }
 };

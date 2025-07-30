@@ -6,6 +6,7 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
 class CustomerController extends Controller
 {
@@ -26,24 +27,23 @@ class CustomerController extends Controller
     }
 
     // GET /api/customers/{id}
-    public function show($id)
+    public function show($id): JsonResponse
     {
         $customer = Auth::guard('customer')->user();
 
         if ($customer->id != $id) {
-            return response()->json(['error' => 'Accès refusé'], 403);
+            return response()->json(['message' => 'Accès refusé'], 403);
         }
 
         return response()->json($customer);
     }
-
         // PUT /api/customers/{id}
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
-        $authenticatedCustomer = Auth::guard('customer')->user();
+        $authenticatedCustomer = $request->user();
 
         if (!$authenticatedCustomer || $authenticatedCustomer->id != $id) {
-            return response()->json(['error' => 'Accès refusé'], 403);
+            return response()->json(['message' => 'Accès refusé'], 403);
         }
 
         $validated = $request->validate([
@@ -56,26 +56,22 @@ class CustomerController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        // Mise à jour directe par ID
-        Customer::where('id', $id)->update($validated);
-        
-        // Récupération du customer mis à jour
-        $customer = Customer::find($id);
+        $authenticatedCustomer->update($validated);
 
-        return response()->json($customer);
+        return response()->json($authenticatedCustomer->fresh());
     }
 
     // DELETE /api/customers/{id}
-    public function destroy($id)
+    public function destroy(Request $request, $id): JsonResponse
     {
-        $authenticatedCustomer = Auth::guard('customer')->user();
+        $authenticatedCustomer = $request->user();
 
         if (!$authenticatedCustomer || $authenticatedCustomer->id != $id) {
-            return response()->json(['error' => 'Accès refusé'], 403);
+            return response()->json(['message' => 'Accès refusé'], 403);
         }
 
-        Customer::destroy($id);
+        $authenticatedCustomer->delete();
 
-        return response()->json(['message' => 'Compte supprimé'], 204);
+        return response()->json(['message' => 'Compte supprimé'], 200);
     }
 }

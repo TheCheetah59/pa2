@@ -26,10 +26,28 @@ class MenuController extends Controller
         return Menu::create($validated);
     }
 
-    public function show($id): Menu
+    public function show(Request $request, $id)
     {
-        return Menu::findOrFail($id);
+        $lang = $request->query('lang', 'fr');
+
+        $menu = Menu::with('dishes')->findOrFail($id);
+
+        return response()->json([
+            'id' => $menu->id,
+            'name' => $menu->name,
+            'description' => $menu->description,
+            'dishes' => $menu->dishes->map(function ($dish) use ($lang) {
+                return [
+                    'id' => $dish->id,
+                    'name' => $dish->{'name_' . $lang},
+                    'description' => $dish->{'description_' . $lang},
+                    'price' => $dish->price,
+                    'image_url' => $dish->image_url,
+                ];
+            }),
+        ]);
     }
+
 
     public function update(Request $request, $id): Menu
     {

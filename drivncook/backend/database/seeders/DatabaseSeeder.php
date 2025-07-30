@@ -23,5 +23,13 @@ class DatabaseSeeder extends Seeder
             EventSeeder::class,
         ]);
 
+        $this->call(    [
+            MenuSeeder::class,
+        ]);
+
+        $this->call([
+            DishSeeder::class,
+        ]);
+
     }
 }
