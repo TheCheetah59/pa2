@@ -31,9 +31,13 @@ class EventRegistrationController extends Controller
     // GET /api/my-events
     public function myEvents()
     {
+        /** @var \App\Models\Customer $customer */
         $customer = Auth::guard('customer')->user();
-         dd(get_class($customer)); // Ajoute ceci pour voir le type retourné
-
+        
+        if (!$customer) {
+            return response()->json(['error' => 'Non authentifié'], 401);
+        }
+        
         return $customer->events()->with('pivot')->get();
     }
 
