@@ -12,11 +12,12 @@ class StockItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'warehouse_id', 'name', 'unit_price', 'stock_quantity', 'category',
+        'warehouse_id', 'name', 'unit_price', 'stock_quantity', 'category', 'is_mandatory',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'is_mandatory' => 'boolean',
     ];
 
     /** @return BelongsTo<Warehouse,StockItem> */
