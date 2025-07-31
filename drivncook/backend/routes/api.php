@@ -31,6 +31,7 @@ use App\Http\Controllers\DishController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\SaleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -95,6 +96,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('stock-items', StockItemController::class);
     Route::apiResource('stock-orders', StockOrderController::class);
     Route::apiResource('stock-order-items', StockOrderItemController::class);
+
+    
+    // Gestion des ventes
+    Route::apiResource('sales', SaleController::class);
+    Route::get('/sales/pdf', [SaleController::class, 'generatePdf']);
     
     // Gestion des menus (admin)
     Route::apiResource('menus', MenuController::class)->except(['index', 'show']);
