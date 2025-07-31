@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\StockOrder;
 use App\Models\StockItem;
+use Illuminate\Http\JsonResponse; 
 use Illuminate\Database\Eloquent\Collection;
 
 class StockOrderItemController extends Controller
@@ -16,7 +17,8 @@ class StockOrderItemController extends Controller
         return StockOrderItem::with(['stockOrder', 'stockItem'])->get();
     }
 
-    public function store(Request $request): StockOrderItem
+
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'stock_order_id' => 'required|exists:stock_orders,id',
@@ -25,31 +27,48 @@ class StockOrderItemController extends Controller
             'price_unit'     => 'required|numeric|min:0',
         ]);
 
-                // Enforce mandatory stock ratio (80% mandatory / 20% free)
+        // Récupérer la commande avec ses items existants
         $stockOrder = StockOrder::with('items.stockItem')->findOrFail($validated['stock_order_id']);
+        
+        // Calculer les quantités actuelles
         $mandatoryQty = 0;
         $totalQty = 0;
 
         foreach ($stockOrder->items as $item) {
             $qty = $item->quantity;
             $totalQty += $qty;
+            
             if ($item->stockItem->is_mandatory) {
                 $mandatoryQty += $qty;
             }
         }
 
+        // Récupérer le nouvel item à ajouter
         $newStockItem = StockItem::findOrFail($validated['stock_item_id']);
-        $totalQty += $validated['quantity'];
+        
+        // Calculer les nouvelles quantités après ajout
+        $newTotalQty = $totalQty + $validated['quantity'];
+        $newMandatoryQty = $mandatoryQty;
+        
         if ($newStockItem->is_mandatory) {
-            $mandatoryQty += $validated['quantity'];
+            $newMandatoryQty += $validated['quantity'];
         }
 
-        if ($mandatoryQty / $totalQty < 0.8) {
-            return response()->json(['message' => 'At least 80% of ordered quantity must be mandatory stock'], 422);
+        // Vérifier le ratio 80/20
+        $mandatoryRatio = $newTotalQty > 0 ? ($newMandatoryQty / $newTotalQty) : 0;
+        
+        if ($mandatoryRatio < 0.8) {
+            return response()->json([
+                'message' => 'At least 80% of ordered quantity must be mandatory stock',
+                'current_ratio' => round($mandatoryRatio * 100, 2) . '%',
+                'required_ratio' => '80%'
+            ], 422);
         }
 
+        // Créer le nouvel item
+        $stockOrderItem = StockOrderItem::create($validated);
 
-        return StockOrderItem::create($validated);
+        return response()->json($stockOrderItem, 201);
     }
 
     public function show($id): StockOrderItem
@@ -57,7 +76,8 @@ class StockOrderItemController extends Controller
         return StockOrderItem::with(['stockOrder', 'stockItem'])->findOrFail($id);
     }
 
-    public function update(Request $request, $id): StockOrderItem
+
+    public function update(Request $request, $id): JsonResponse
     {
         $item = StockOrderItem::findOrFail($id);
 
@@ -68,7 +88,7 @@ class StockOrderItemController extends Controller
             'price_unit'     => 'sometimes|numeric|min:0',
         ]);
 
-                // Determine the order and stock item after potential updates
+        // Determine the order and stock item after potential updates
         $stockOrderId = $validated['stock_order_id'] ?? $item->stock_order_id;
         $stockItemId  = $validated['stock_item_id'] ?? $item->stock_item_id;
 
@@ -93,12 +113,24 @@ class StockOrderItemController extends Controller
             }
         }
 
-        if ($mandatoryQty / $totalQty < 0.8) {
-            return response()->json(['message' => 'At least 80% of ordered quantity must be mandatory stock'], 422);
+        // Vérification du ratio 80/20
+        $mandatoryRatio = $totalQty > 0 ? ($mandatoryQty / $totalQty) : 0;
+        
+        if ($mandatoryRatio < 0.8) {
+            return response()->json([
+                'message' => 'At least 80% of ordered quantity must be mandatory stock',
+                'current_ratio' => round($mandatoryRatio * 100, 2) . '%',
+                'required_ratio' => '80%'
+            ], 422);
         }
 
+        // Mise à jour de l'item
         $item->update($validated);
-        return $item;
+        
+        // Recharger l'item avec ses relations si nécessaire
+        $item->load('stockItem', 'stockOrder');
+        
+        return response()->json($item, 200);
     }
 
     public function destroy($id): Response
