@@ -17,6 +17,7 @@ use App\Http\Controllers\StockItemController;
 use App\Http\Controllers\StockOrderController;
 use App\Http\Controllers\StockOrderItemController;
 
+
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
