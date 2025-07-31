@@ -20,6 +20,7 @@ class StockItemSeeder extends Seeder
                     'unit_price' => fake()->randomFloat(2, 1, 20),
                     'stock_quantity' => fake()->numberBetween(10, 200),
                     'category' => $categories[array_rand($categories)],
+                    'is_mandatory' => fake()->boolean(80),
                 ]);
             }
         });
