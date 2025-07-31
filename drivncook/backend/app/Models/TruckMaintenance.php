@@ -24,8 +24,4 @@ class TruckMaintenance extends Model
         return $this->belongsTo(Truck::class);
     }
 
-    public function show($id)
-    {
-        return TruckMaintenance::with('truck')->findOrFail($id);
-    }
 }
