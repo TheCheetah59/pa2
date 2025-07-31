@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerAuthController;
-use App\Http\Controllers\Api\EventRegistrationController;
+use App\Http\Controllers\EventRegistrationController;
 
 use App\Http\Controllers\FranchiseeController;
 use App\Http\Controllers\TruckController;
