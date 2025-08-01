@@ -1,5 +1,5 @@
 /* src/App.jsx */
-import "./App.css";
+import "../src/App.css";
 
 function HeroSection() {
   return (
@@ -43,31 +43,32 @@ function AboutSection() {
 
 const services = [
   {
-    emoji: "🚚",
     title: "Food trucks",
     desc: "Des plats de qualité partout en ville",
+    image: "./assets/image_food_truck.jpg",
   },
   {
-    emoji: "🤝",
     title: "Franchises",
     desc: "Rejoignez notre réseau en Île-de-France",
+    image: "https://source.unsplash.com/400x300/?franchise",
   },
   {
-    emoji: "💳",
     title: "Carte de fidélité",
     desc: "Cumulez des points à chaque commande",
+    image: "https://source.unsplash.com/400x300/?loyalty",
   },
   {
-    emoji: "🛒",
     title: "Commandes en ligne",
     desc: "Commandez depuis notre site ou application",
+    image: "https://source.unsplash.com/400x300/?online,order",
   },
   {
-    emoji: "🎉",
     title: "Événements",
     desc: "Animations et dégustations régulières",
+    image: "https://source.unsplash.com/400x300/?event,food",
   },
 ];
+
 
 function ServicesSection() {
   return (
