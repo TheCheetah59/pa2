@@ -123,6 +123,8 @@ body {
   transition: var(--transition);
 }
 
+
+
 /* Hero Section */
 .hero {
   background: linear-gradient(135deg, var(--light-bg) 0%, #ecf0f1 100%);
@@ -354,10 +356,7 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .nav-menu {
-    display: none;
-  }
-  
+
   .hamburger {
     display: flex;
   }
@@ -416,4 +415,66 @@ body {
   .service-card, .advantage {
     padding: 1.5rem;
   }
+}
+
+/* Styles pour le menu hamburger mobile */
+@media (max-width: 768px) {
+  .nav-menu {
+    position: fixed;
+    left: -100%;
+    top: 70px;
+    flex-direction: column;
+    background-color: white;
+    width: 100%;
+    text-align: center;
+    transition: 0.3s;
+    box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+    z-index: 999;
+    padding: 2rem 0;
+  }
+
+  .nav-menu.active {
+    left: 0;
+    background-color: var(--text-light); 
+  }
+
+  .nav-menu li {
+    margin: 1.5rem 0;
+  }
+
+  .hamburger {
+    display: flex !important;
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+  .hamburger span {
+    width: 25px;
+    height: 3px;
+    background: #2c3e50;
+    margin: 3px 0;
+    transition: 0.3s;
+  }
+
+  .hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+
+  .hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+    .nav-menu {
+    position: fixed;
+    left: -100%;  /* ← Menu caché à gauche */
+    /* ... reste du CSS */
+  }
+
+  .nav-menu.active {
+    left: 0;  /* ← Menu visible quand active */
+  }
+  /* Styles */
 }
