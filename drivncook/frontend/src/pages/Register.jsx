@@ -14,6 +14,7 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
+  const [generalError, setGeneralError] = useState("");
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,6 +22,8 @@ const Register = () => {
   const submit = async (e) => {
     e.preventDefault();
     setErrors({});
+    setGeneralError("");
+    setSuccess("");
     try {
       await register(form);
       setSuccess("Inscription réussie !");
@@ -28,6 +31,8 @@ const Register = () => {
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
+      } else {
+        setGeneralError(err.response?.data?.message || "Une erreur est survenue");
       }
     }
   };
@@ -48,9 +53,11 @@ const Register = () => {
           aria-describedby="register-name-error"
         />
         {errors.name && (
-          <small id="register-name-error" className="auth-message auth-error">
-            {errors.name[0]}
-          </small>
+          <div aria-live="polite">
+            <small id="register-name-error" className="auth-message auth-error">
+              {errors.name[0]}
+            </small>
+          </div>
         )}
       </div>
       <div className="auth-field">
@@ -67,9 +74,14 @@ const Register = () => {
           aria-describedby="register-email-error"
         />
         {errors.email && (
-          <small id="register-email-error" className="auth-message auth-error">
-            {errors.email[0]}
-          </small>
+          <div aria-live="polite">
+            <small
+              id="register-email-error"
+              className="auth-message auth-error"
+            >
+              {errors.email[0]}
+            </small>
+          </div>
         )}
       </div>
       <div className="auth-field">
@@ -86,12 +98,14 @@ const Register = () => {
           aria-describedby="register-password-error"
         />
         {errors.password && (
-          <small
-            id="register-password-error"
-            className="auth-message auth-error"
-          >
-            {errors.password[0]}
-          </small>
+          <div aria-live="polite">
+            <small
+              id="register-password-error"
+              className="auth-message auth-error"
+            >
+              {errors.password[0]}
+            </small>
+          </div>
         )}
       </div>
       <div className="auth-field">
@@ -110,19 +124,30 @@ const Register = () => {
           aria-describedby="register-password-confirmation-error"
         />
         {errors.password_confirmation && (
-          <small
-            id="register-password-confirmation-error"
-            className="auth-message auth-error"
-          >
-            {errors.password_confirmation[0]}
-          </small>
+          <div aria-live="polite">
+            <small
+              id="register-password-confirmation-error"
+              className="auth-message auth-error"
+            >
+              {errors.password_confirmation[0]}
+            </small>
+          </div>
         )}
       </div>
 
       <button type="submit" className="auth-btn">
         S'inscrire
       </button>
-      {success && <p className="auth-message auth-success">{success}</p>}
+      {generalError && (
+        <div aria-live="polite">
+          <p className="auth-message auth-error">{generalError}</p>
+        </div>
+      )}
+      {success && (
+        <div aria-live="polite">
+          <p className="auth-message auth-success">{success}</p>
+        </div>
+      )}
     </form>
   );
 };

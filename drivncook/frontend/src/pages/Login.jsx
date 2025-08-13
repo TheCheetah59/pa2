@@ -9,6 +9,7 @@ const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
+  const [generalError, setGeneralError] = useState("");
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,6 +17,8 @@ const Login = () => {
   const submit = async (e) => {
     e.preventDefault();
     setErrors({});
+    setGeneralError("");
+    setSuccess("");
     try {
       await login(form);
       setSuccess("Connexion réussie !");
@@ -23,6 +26,8 @@ const Login = () => {
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
+      } else {
+        setGeneralError(err.response?.data?.message || "Une erreur est survenue");
       }
     }
   };
@@ -43,9 +48,11 @@ const Login = () => {
           aria-describedby="login-email-error"
         />
         {errors.email && (
-          <small id="login-email-error" className="auth-message auth-error">
-            {errors.email[0]}
-          </small>
+          <div aria-live="polite">
+            <small id="login-email-error" className="auth-message auth-error">
+              {errors.email[0]}
+            </small>
+          </div>
         )}
       </div>
       <div className="auth-field">
@@ -62,16 +69,30 @@ const Login = () => {
           aria-describedby="login-password-error"
         />
         {errors.password && (
-          <small id="login-password-error" className="auth-message auth-error">
-            {errors.password[0]}
-          </small>
+          <div aria-live="polite">
+            <small
+              id="login-password-error"
+              className="auth-message auth-error"
+            >
+              {errors.password[0]}
+            </small>
+          </div>
         )}
       </div>
 
       <button type="submit" className="auth-btn">
         Connexion
       </button>
-      {success && <p className="auth-message auth-success">{success}</p>}
+      {generalError && (
+        <div aria-live="polite">
+          <p className="auth-message auth-error">{generalError}</p>
+        </div>
+      )}
+      {success && (
+        <div aria-live="polite">
+          <p className="auth-message auth-success">{success}</p>
+        </div>
+      )}
     </form>
   );
 };

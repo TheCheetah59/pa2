@@ -58,11 +58,17 @@
 }
 
 .auth-error {
-  color: var(--primary-color);
+  color: var(--text-light);
+  background: var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
 }
 
 .auth-success {
-  color: var(--accent-color);
+  color: var(--text-light);
+  background: #2ecc71;
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
 }
 
 @media (max-width: 768px) {
