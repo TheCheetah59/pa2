@@ -35,55 +35,85 @@ const Register = () => {
   return (
     <form onSubmit={submit} className="auth-form">
       <div className="auth-field">
-        <label>Nom</label>
+        <label htmlFor="register-name">Nom</label>
         <input
+          id="register-name"
           className="auth-input"
+          type="text"
           name="name"
           value={form.name}
           onChange={handleChange}
+          required
+          autoComplete="name"
+          aria-describedby="register-name-error"
         />
         {errors.name && (
-          <small className="auth-message auth-error">{errors.name[0]}</small>
+          <small id="register-name-error" className="auth-message auth-error">
+            {errors.name[0]}
+          </small>
         )}
       </div>
       <div className="auth-field">
-        <label>Email</label>
+        <label htmlFor="register-email">Email</label>
         <input
+          id="register-email"
           className="auth-input"
+          type="email"
           name="email"
           value={form.email}
           onChange={handleChange}
+          required
+          autoComplete="email"
+          aria-describedby="register-email-error"
         />
         {errors.email && (
-          <small className="auth-message auth-error">{errors.email[0]}</small>
+          <small id="register-email-error" className="auth-message auth-error">
+            {errors.email[0]}
+          </small>
         )}
       </div>
       <div className="auth-field">
-        <label>Mot de passe</label>
+        <label htmlFor="register-password">Mot de passe</label>
         <input
+          id="register-password"
           className="auth-input"
           type="password"
           name="password"
           value={form.password}
           onChange={handleChange}
+          required
+          autoComplete="new-password"
+          aria-describedby="register-password-error"
         />
         {errors.password && (
-          <small className="auth-message auth-error">
+          <small
+            id="register-password-error"
+            className="auth-message auth-error"
+          >
             {errors.password[0]}
           </small>
         )}
       </div>
       <div className="auth-field">
-        <label>Confirmez le mot de passe</label>
+        <label htmlFor="register-password-confirmation">
+          Confirmez le mot de passe
+        </label>
         <input
+          id="register-password-confirmation"
           className="auth-input"
           type="password"
           name="password_confirmation"
           value={form.password_confirmation}
           onChange={handleChange}
+          required
+          autoComplete="new-password"
+          aria-describedby="register-password-confirmation-error"
         />
         {errors.password_confirmation && (
-          <small className="auth-message auth-error">
+          <small
+            id="register-password-confirmation-error"
+            className="auth-message auth-error"
+          >
             {errors.password_confirmation[0]}
           </small>
         )}

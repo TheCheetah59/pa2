@@ -30,28 +30,39 @@ const Login = () => {
   return (
     <form onSubmit={submit} className="auth-form">
       <div className="auth-field">
-        <label>Email</label>
+        <label htmlFor="login-email">Email</label>
         <input
+          id="login-email"
           className="auth-input"
+          type="email"
           name="email"
           value={form.email}
           onChange={handleChange}
+          required
+          autoComplete="email"
+          aria-describedby="login-email-error"
         />
         {errors.email && (
-          <small className="auth-message auth-error">{errors.email[0]}</small>
+          <small id="login-email-error" className="auth-message auth-error">
+            {errors.email[0]}
+          </small>
         )}
       </div>
       <div className="auth-field">
-        <label>Mot de passe</label>
+        <label htmlFor="login-password">Mot de passe</label>
         <input
+          id="login-password"
           className="auth-input"
           type="password"
           name="password"
           value={form.password}
           onChange={handleChange}
+          required
+          autoComplete="current-password"
+          aria-describedby="login-password-error"
         />
         {errors.password && (
-          <small className="auth-message auth-error">
+          <small id="login-password-error" className="auth-message auth-error">
             {errors.password[0]}
           </small>
         )}
