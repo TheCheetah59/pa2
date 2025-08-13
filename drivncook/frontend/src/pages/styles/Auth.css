@@ -1,0 +1,73 @@
+@import "./Accueil.css";
+
+/* Auth pages styling */
+.auth-form {
+  max-width: 400px;
+  margin: 120px auto;
+  padding: 2rem;
+  background: var(--light-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-field label {
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: var(--border-radius);
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.auth-btn {
+  background: var(--primary-color);
+  color: var(--text-light);
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-btn:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+.auth-message {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.auth-error {
+  color: var(--primary-color);
+}
+
+.auth-success {
+  color: var(--accent-color);
+}
+
+@media (max-width: 768px) {
+  .auth-form {
+    margin: 80px 1rem;
+    padding: 1.5rem;
+  }
+}

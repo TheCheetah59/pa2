@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../useAuth";
+import "./styles/Auth.css";
 
 const Register = () => {
   const { register } = useAuth();
@@ -32,42 +33,66 @@ const Register = () => {
   };
 
   return (
-    <form onSubmit={submit}>
-      <div>
+    <form onSubmit={submit} className="auth-form">
+      <div className="auth-field">
         <label>Nom</label>
-        <input name="name" value={form.name} onChange={handleChange} />
-        {errors.name && <small>{errors.name[0]}</small>}
+        <input
+          className="auth-input"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+        />
+        {errors.name && (
+          <small className="auth-message auth-error">{errors.name[0]}</small>
+        )}
       </div>
-      <div>
+      <div className="auth-field">
         <label>Email</label>
-        <input name="email" value={form.email} onChange={handleChange} />
-        {errors.email && <small>{errors.email[0]}</small>}
+        <input
+          className="auth-input"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+        />
+        {errors.email && (
+          <small className="auth-message auth-error">{errors.email[0]}</small>
+        )}
       </div>
-      <div>
+      <div className="auth-field">
         <label>Mot de passe</label>
         <input
+          className="auth-input"
           type="password"
           name="password"
           value={form.password}
           onChange={handleChange}
         />
-        {errors.password && <small>{errors.password[0]}</small>}
+        {errors.password && (
+          <small className="auth-message auth-error">
+            {errors.password[0]}
+          </small>
+        )}
       </div>
-      <div>
+      <div className="auth-field">
         <label>Confirmez le mot de passe</label>
         <input
+          className="auth-input"
           type="password"
           name="password_confirmation"
           value={form.password_confirmation}
           onChange={handleChange}
         />
         {errors.password_confirmation && (
-          <small>{errors.password_confirmation[0]}</small>
+          <small className="auth-message auth-error">
+            {errors.password_confirmation[0]}
+          </small>
         )}
       </div>
 
-      <button type="submit">S'inscrire</button>
-      {success && <p>{success}</p>}
+      <button type="submit" className="auth-btn">
+        S'inscrire
+      </button>
+      {success && <p className="auth-message auth-success">{success}</p>}
     </form>
   );
 };

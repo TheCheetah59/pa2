@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../useAuth";
+import "./styles/Auth.css";
 
 const Login = () => {
   const { login } = useAuth();
@@ -27,25 +28,39 @@ const Login = () => {
   };
 
   return (
-    <form onSubmit={submit}>
-      <div>
+    <form onSubmit={submit} className="auth-form">
+      <div className="auth-field">
         <label>Email</label>
-        <input name="email" value={form.email} onChange={handleChange} />
-        {errors.email && <small>{errors.email[0]}</small>}
+        <input
+          className="auth-input"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+        />
+        {errors.email && (
+          <small className="auth-message auth-error">{errors.email[0]}</small>
+        )}
       </div>
-      <div>
+      <div className="auth-field">
         <label>Mot de passe</label>
         <input
+          className="auth-input"
           type="password"
           name="password"
           value={form.password}
           onChange={handleChange}
         />
-        {errors.password && <small>{errors.password[0]}</small>}
+        {errors.password && (
+          <small className="auth-message auth-error">
+            {errors.password[0]}
+          </small>
+        )}
       </div>
 
-      <button type="submit">Connexion</button>
-      {success && <p>{success}</p>}
+      <button type="submit" className="auth-btn">
+        Connexion
+      </button>
+      {success && <p className="auth-message auth-success">{success}</p>}
     </form>
   );
 };
