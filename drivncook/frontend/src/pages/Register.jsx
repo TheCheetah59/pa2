@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../useAuth";
 import "./styles/Auth.css";
 
@@ -138,6 +138,9 @@ const Register = () => {
       <button type="submit" className="auth-btn">
         S'inscrire
       </button>
+      <p className="auth-message">
+        <Link to="/login">Déjà inscrit ?</Link>
+      </p>
       {generalError && (
         <div aria-live="polite">
           <p className="auth-message auth-error">{generalError}</p>

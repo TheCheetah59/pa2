@@ -1,21 +1,13 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Accueil from "./pages/Accueil";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Menu from "./pages/Menu";
+import { BrowserRouter } from "react-router-dom";
+import Routes from "./Routes";
+import { AuthProvider } from "./useAuth";
 
-
-
-const App = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<Accueil />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/menu" element={<Menu />} />
-    </Routes>
-  );
-};
-
+const App = () => (
+  <AuthProvider>
+    <BrowserRouter>
+      <Routes />
+    </BrowserRouter>
+  </AuthProvider>
+);
 export default App;

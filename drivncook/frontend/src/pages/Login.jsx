@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../useAuth";
 import "./styles/Auth.css";
 
@@ -83,6 +83,9 @@ const Login = () => {
       <button type="submit" className="auth-btn">
         Connexion
       </button>
+      <p className="auth-message">
+        <Link to="/register">Pas encore inscrit ?</Link>
+      </p>
       {generalError && (
         <div aria-live="polite">
           <p className="auth-message auth-error">{generalError}</p>
