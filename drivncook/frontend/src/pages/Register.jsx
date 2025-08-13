@@ -24,7 +24,7 @@ const Register = () => {
     try {
       await register(form);
       setSuccess("Inscription réussie !");
-      navigate("/dashboard");
+      navigate("/menu");
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
