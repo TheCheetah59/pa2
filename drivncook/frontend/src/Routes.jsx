@@ -17,30 +17,15 @@ const AppRoutes = () => (
     <Route path="/register" element={<Register />} />
     <Route path="/waiting" element={<ActivationWaiting />} />
     <Route path="/activate/:token" element={<ActivationCallback />} />
-    <Route
-      path="/dashboard"
-      element={
-        <ProtectedRoute>
-          <DashboardClient />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/dashboard-franchise"
-      element={
-        <ProtectedRoute>
-          <DashboardFranchise />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/dashboard-admin"
-      element={
-        <ProtectedRoute>
-          <DashboardAdmin />
-        </ProtectedRoute>
-      }
-    />
+    <Route element={<ProtectedRoute roles={["client"]} />}>
+      <Route path="/dashboard" element={<DashboardClient />} />
+    </Route>
+    <Route element={<ProtectedRoute roles={["franchise"]} />}>
+      <Route path="/dashboard-franchise" element={<DashboardFranchise />} />
+    </Route>
+    <Route element={<ProtectedRoute roles={["admin"]} />}>
+      <Route path="/dashboard-admin" element={<DashboardAdmin />} />
+    </Route>
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
