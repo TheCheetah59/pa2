@@ -1,5 +1,12 @@
 import React from "react";
-import Routes from "./Routes";
+import AppRoutes from "./Routes"; // Assure-toi que c’est bien le bon nom
+import Header from "./components/accueil/Header";
 
-const App = () => <Routes />;
+const App = () => (
+  <>
+    <Header />
+    <AppRoutes />
+  </>
+);
+
 export default App;
