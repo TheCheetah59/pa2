@@ -13,14 +13,14 @@ class UserManagementTest extends TestCase
 
     public function test_index_returns_inactive_users(): void
     {
-        $admin = User::factory()->create(['is_activated' => true]);
+        $admin = User::factory()->create(['is_activated' => true, 'role' => 'admin']);
         Sanctum::actingAs($admin);
 
         $inactive1 = User::factory()->create(['is_activated' => false]);
         $inactive2 = User::factory()->create(['is_activated' => false]);
         $active = User::factory()->create(['is_activated' => true]);
 
-        $response = $this->getJson('/api/users');
+        $response = $this->getJson('/api/admin/users');
 
         $response->assertStatus(200);
         $this->assertCount(2, $response->json());
@@ -28,12 +28,12 @@ class UserManagementTest extends TestCase
 
     public function test_activate_user(): void
     {
-        $admin = User::factory()->create(['is_activated' => true]);
+        $admin = User::factory()->create(['is_activated' => true, 'role' => 'admin']);
         Sanctum::actingAs($admin);
 
         $user = User::factory()->create(['is_activated' => false]);
 
-        $this->patchJson('/api/users/' . $user->id . '/activate')
+        $this->postJson('/api/admin/users/' . $user->id . '/activate')
             ->assertStatus(200)
             ->assertJson(['user' => ['id' => $user->id, 'is_activated' => true]]);
 
@@ -42,12 +42,13 @@ class UserManagementTest extends TestCase
 
     public function test_suspend_user(): void
     {
-        $admin = User::factory()->create(['is_activated' => true]);
+        $admin = User::factory()->create(['is_activated' => true, 'role' => 'admin']);
         Sanctum::actingAs($admin);
 
         $user = User::factory()->create(['is_activated' => true]);
 
-        $this->patchJson('/api/users/' . $user->id . '/suspend')
+        
+        $this->postJson('/api/admin/users/' . $user->id . '/suspend')
             ->assertStatus(200)
             ->assertJson(['user' => ['id' => $user->id, 'is_activated' => false]]);
 
