@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import logoSite from "../../assets/image_logo_site.png";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 // Composant Header avec Navigation
 const Header = ({ t }) => {
