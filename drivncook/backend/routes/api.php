@@ -32,6 +32,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -109,6 +110,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Gestion des ventes
     Route::apiResource('sales', SaleController::class);
     Route::get('/sales/pdf', [SaleController::class, 'generatePdf']);
+    
+    // Gestion des utilisateurs
+    Route::get('/users', [UserController::class, 'index']);
+    Route::patch('/users/{user}/activate', [UserController::class, 'activate']);
+    Route::patch('/users/{user}/suspend', [UserController::class, 'suspend']);
     
     // Gestion des menus (admin)
     Route::apiResource('menus', MenuController::class)->except(['index', 'show']);
