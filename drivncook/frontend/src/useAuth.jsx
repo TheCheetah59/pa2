@@ -17,11 +17,16 @@ export const AuthProvider = ({ children }) => {
         const { data } = await api.get("/user");
         setUser(data);
         localStorage.setItem("user", JSON.stringify(data));
+        if (!data.is_activated) {
+          navigate("/waiting");
+        }
       } catch (err) {
         if (err.response?.status === 401) {
           setUser(null);
           localStorage.removeItem("user");
           navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/waiting");
         }
       }
     };
@@ -35,6 +40,8 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           localStorage.removeItem("user");
           navigate("/login");
+        } else if (error.response?.status === 403) {
+          navigate("/waiting");
         }
         return Promise.reject(error);
       }

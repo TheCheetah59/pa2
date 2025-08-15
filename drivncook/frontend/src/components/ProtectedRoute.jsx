@@ -6,6 +6,9 @@ const ProtectedRoute = ({ children }) => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+  if (!user.is_activated) {
+    return <Navigate to="/waiting" replace />;
+  }
   return children;
 };
 
