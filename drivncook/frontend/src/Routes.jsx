@@ -2,22 +2,40 @@ import { Routes, Route } from "react-router-dom";
 import Accueil from "./pages/Accueil";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Menu from "./pages/Menu"; // ou Dashboard
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
-import Waiting from "./pages/Waiting";
+import ActivationWaiting from "./pages/ActivationWaiting";
+import DashboardClient from "./pages/DashboardClient";
+import DashboardFranchise from "./pages/DashboardFranchise";
+import DashboardAdmin from "./pages/DashboardAdmin";
 
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Accueil />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
-    <Route path="/waiting" element={<Waiting />} />
+    <Route path="/waiting" element={<ActivationWaiting />} />
     <Route
-      path="/menu"
+      path="/dashboard"
       element={
         <ProtectedRoute>
-          <Menu />
+          <DashboardClient />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/dashboard-franchise"
+      element={
+        <ProtectedRoute>
+          <DashboardFranchise />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/dashboard-admin"
+      element={
+        <ProtectedRoute>
+          <DashboardAdmin />
         </ProtectedRoute>
       }
     />

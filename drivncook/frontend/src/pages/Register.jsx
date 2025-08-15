@@ -4,13 +4,14 @@ import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Register = () => {
-  const { register } = useAuth();
+  const { register, logout } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     password_confirmation: "",
+    role: "client",
   });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
@@ -26,8 +27,11 @@ const Register = () => {
     setSuccess("");
     try {
       await register(form);
-      setSuccess("Inscription réussie !");
-      navigate("/menu");
+        setSuccess("Vérifiez votre email pour activer votre compte");
+        setTimeout(() => {
+        logout();
+        navigate("/login");
+      }, 2000);
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
@@ -80,6 +84,27 @@ const Register = () => {
               className="auth-message auth-error"
             >
               {errors.email[0]}
+            </small>
+          </div>
+        )}
+      </div>
+      <div className="auth-field">
+        <label htmlFor="register-role">Rôle</label>
+        <select
+          id="register-role"
+          className="auth-input"
+          name="role"
+          value={form.role}
+          onChange={handleChange}
+          aria-describedby="register-role-error"
+        >
+          <option value="client">client</option>
+          <option value="franchise">franchise</option>
+        </select>
+        {errors.role && (
+          <div aria-live="polite">
+            <small id="register-role-error" className="auth-message auth-error">
+              {errors.role[0]}
             </small>
           </div>
         )}

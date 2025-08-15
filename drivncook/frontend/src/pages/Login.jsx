@@ -20,9 +20,22 @@ const Login = () => {
     setGeneralError("");
     setSuccess("");
     try {
-      await login(form);
+      const { user } = await login(form);
       setSuccess("Connexion réussie !");
-      navigate("/menu");
+      if (!user.is_activated) {
+        navigate("/waiting");
+      } else {
+        switch (user.role) {
+          case "franchise":
+            navigate("/dashboard-franchise");
+            break;
+          case "admin":
+            navigate("/dashboard-admin");
+            break;
+          default:
+            navigate("/dashboard");
+        }
+      }
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
