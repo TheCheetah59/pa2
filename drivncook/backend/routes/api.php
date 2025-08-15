@@ -86,6 +86,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Profil admin/staff
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/user', [AuthController::class, 'me']);
 
     
     // Déconnexion admin/staff

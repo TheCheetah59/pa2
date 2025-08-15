@@ -35,7 +35,10 @@ class AuthController extends Controller
 
         $user->notify(new ActivationLink($token));
 
-        return response()->json(['message' => 'User registered. Please check your email for activation link.'], 201);
+        return response()->json([
+            'message' => 'User registered. Please check your email for activation link.',
+            'user' => $user,
+        ], 201);
     }
 
     /**
@@ -76,7 +79,10 @@ class AuthController extends Controller
         }
 
         if (!$user->is_activated) {
-            return response()->json(['message' => 'Account not activated'], 403);
+            return response()->json([
+                'message' => 'Account not activated',
+                'is_activated' => false,
+            ], 403);
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
