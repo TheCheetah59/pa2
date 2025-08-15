@@ -65,6 +65,13 @@ Route::post('/customers', [CustomerController::class, 'store']);
 // Login admin/staff
 Route::post('/login', [AuthController::class, 'login']);
 
+// Register admin/staff
+Route::post('/register', [AuthController::class, 'register']);
+
+// Account activation
+Route::get('/activate/{token}', [AuthController::class, 'activate']);
+
+
 // Login client
 Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 
@@ -76,8 +83,9 @@ Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     
-    // Profile admin/staff
-    Route::get('/profile', fn (Request $request) => $request->user());
+    // Profil admin/staff
+    Route::get('/me', [AuthController::class, 'me']);
+
     
     // Déconnexion admin/staff
     Route::post('/logout', [AuthController::class, 'logout']);
