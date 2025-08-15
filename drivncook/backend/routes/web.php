@@ -25,4 +25,9 @@ Route::get('/franchisee/code/{code}/report', function ($code) {
     $franchisees = collect([$franchisee]);
     $pdf = Pdf::loadView('franchisee-report', compact('franchisees'));
     return $pdf->stream("rapport-{$code}.pdf");
+
+
 });
+
+Route::get('{any}', fn () => file_get_contents(public_path('index.html')))
+     ->where('any', '.*');
