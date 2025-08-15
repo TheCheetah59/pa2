@@ -8,6 +8,7 @@ import ActivationWaiting from "./pages/ActivationWaiting";
 import DashboardClient from "./pages/DashboardClient";
 import DashboardFranchise from "./pages/DashboardFranchise";
 import DashboardAdmin from "./pages/DashboardAdmin";
+import ActivationCallback from "./pages/ActivationCallback";
 
 const AppRoutes = () => (
   <Routes>
@@ -15,6 +16,7 @@ const AppRoutes = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/waiting" element={<ActivationWaiting />} />
+    <Route path="/activate/:token" element={<ActivationCallback />} />
     <Route
       path="/dashboard"
       element={
