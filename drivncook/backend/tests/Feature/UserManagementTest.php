@@ -43,7 +43,7 @@ class UserManagementTest extends TestCase
     public function test_suspend_user(): void
     {
         $admin = User::factory()->create(['is_activated' => true, 'role' => 'admin']);
-        Sanctum::actingAs($admin);
+       Sanctum::actingAs($admin);
 
         $user = User::factory()->create(['is_activated' => true]);
 
@@ -53,5 +53,20 @@ class UserManagementTest extends TestCase
             ->assertJson(['user' => ['id' => $user->id, 'is_activated' => false]]);
 
         $this->assertFalse($user->fresh()->is_activated);
+    }
+
+    
+    public function test_make_admin_promotes_user_role(): void
+    {
+        $admin = User::factory()->create(['is_activated' => true, 'role' => 'admin']);
+        Sanctum::actingAs($admin);
+
+        $user = User::factory()->create(['is_activated' => true, 'role' => 'client']);
+
+        $this->patchJson('/api/users/' . $user->id . '/make-admin')
+            ->assertStatus(200)
+            ->assertJson(['user' => ['id' => $user->id, 'role' => 'admin']]);
+
+        $this->assertSame('admin', $user->fresh()->role);
     }
 }

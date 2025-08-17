@@ -34,6 +34,20 @@ class AdminAuthorizationTest extends TestCase
         $this->patchJson('/api/users/' . $target->id . '/activate')->assertStatus(403);
     }
 
+        public function test_non_admin_cannot_make_admin(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'client',
+            'is_activated' => true,
+        ]);
+        $target = User::factory()->create(['is_activated' => true]);
+        Sanctum::actingAs($user);
+
+        $this->patchJson('/api/users/' . $target->id . '/make-admin')->assertStatus(403);
+    }
+
+
+
     public function test_suspended_admin_cannot_access_admin_routes(): void
     {
         $user = User::factory()->create([

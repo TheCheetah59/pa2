@@ -33,6 +33,13 @@ If the provided credentials are incorrect the endpoint returns a `401`
 response. Accounts that have not been activated yet receive a `403` response
 with the message `Compte non activé`.
 
+## Registration
+
+Use `POST /api/register` to create new user accounts. Only `client` and
+`franchise` roles are accepted. Admin accounts cannot be registered through
+this endpoint. To promote an existing user to administrator, an authenticated
+admin must call the privileged `PATCH /api/users/{id}/make-admin` endpoint.
+
 
 
 ## Learning Laravel

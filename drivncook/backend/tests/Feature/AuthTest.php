@@ -113,6 +113,18 @@ class AuthTest extends TestCase
           ->assertJsonValidationErrors(['role']);
     }
 
+        public function test_register_rejects_admin_role(): void
+    {
+        $this->postJson('/api/register', [
+            'name' => 'Admin Attempt',
+            'email' => 'admin@example.com',
+            'password' => 'password123',
+            'role' => 'admin',
+        ])->assertStatus(422)
+          ->assertJsonValidationErrors(['role']);
+    }
+
+
     public function test_login_returns_403_when_user_not_activated(): void
     {
         User::factory()->create([

@@ -117,6 +117,7 @@ Route::middleware(['auth:sanctum', 'activated', 'role:admin'])->group(function (
     Route::get('/users', [AdminController::class, 'index']);
     Route::patch('/users/{user}/activate', [AdminController::class, 'activate']);
     Route::patch('/users/{user}/suspend', [AdminController::class, 'suspend']);
+    Route::patch('/users/{user}/make-admin', [AdminController::class, 'makeAdmin']);
     
     // Gestion des menus (admin)
     Route::apiResource('menus', MenuController::class)->except(['index', 'show']);

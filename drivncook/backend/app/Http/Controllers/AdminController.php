@@ -35,4 +35,16 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'User suspended successfully', 'user' => $user]);
     }
+
+    
+    /**
+     * Promote the given user to administrator.
+     */
+    public function makeAdmin(User $user)
+    {
+        $user->role = 'admin';
+        $user->save();
+
+        return response()->json(['message' => 'User promoted to admin', 'user' => $user]);
+    }
 }
