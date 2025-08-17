@@ -44,8 +44,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (payload) => {
-    const { data } = await api.post("/register", payload);
-    return data.message;
+    const {
+      data: { message },
+    } = await api.post("/register", payload);
+    return message;
   };
 
   const logout = async () => {

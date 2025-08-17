@@ -25,8 +25,8 @@ const Register = () => {
     setGeneralError("");
     setSuccess("");
     try {
-      await register(form);
-      setSuccess("Vérifiez votre email pour activer votre compte");
+      const message = await register(form);
+      setSuccess(message);
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
