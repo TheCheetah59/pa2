@@ -15,11 +15,7 @@ class EnsureActivated
         $user = $request->user();
 
         if (!$user || !$user->is_activated) {
-            if ($request->expectsJson()) {
-                abort(403, 'Account inactive.');
-            }
-
-            return redirect('/');
+            return response()->json(['message' => 'Account inactive.'], 403);
         }
 
         return $next($request);

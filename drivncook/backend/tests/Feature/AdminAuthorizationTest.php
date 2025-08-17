@@ -19,7 +19,9 @@ class AdminAuthorizationTest extends TestCase
         ]);
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/users')->assertStatus(403);
+        $this->get('/api/users')
+            ->assertStatus(403)
+            ->assertJson(['message' => 'Account inactive.']);
     }
 
     public function test_non_admin_cannot_activate_user(): void
