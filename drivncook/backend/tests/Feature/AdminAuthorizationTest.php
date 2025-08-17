@@ -33,4 +33,26 @@ class AdminAuthorizationTest extends TestCase
 
         $this->patchJson('/api/users/' . $target->id . '/activate')->assertStatus(403);
     }
+
+    public function test_suspended_admin_cannot_access_admin_routes(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'admin',
+            'is_activated' => false,
+        ]);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/users')->assertStatus(403);
+    }
+
+    public function test_activated_admin_can_access_admin_routes(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'admin',
+            'is_activated' => true,
+        ]);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/users')->assertStatus(200);
+    }
 }
