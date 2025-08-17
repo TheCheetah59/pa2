@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\ActivationLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
@@ -79,6 +80,48 @@ class AuthTest extends TestCase
             ->assertStatus(404)
             ->assertJson(['message' => 'Token non valide ou expiré']);
     }
+
+    
+    public function test_activation_with_expired_token_returns_404(): void
+    {
+        $user = User::factory()->create([
+            'activation_token' => 'expired-token',
+            'activation_token_expires_at' => now()->subDay(),
+            'is_activated' => false,
+        ]);
+
+        $this->getJson('/api/activate/' . $user->activation_token)
+            ->assertStatus(404)
+            ->assertJson(['message' => 'Token non valide ou expiré']);
+    }
+
+    public function test_register_rejects_unsupported_role(): void
+    {
+        $this->postJson('/api/register', [
+            'name' => 'Invalid Role',
+            'email' => 'invalid@example.com',
+            'password' => 'password123',
+            'role' => 'unsupported',
+        ])->assertStatus(422)
+          ->assertJsonValidationErrors(['role']);
+    }
+
+    public function test_login_returns_403_when_user_not_activated(): void
+    {
+        User::factory()->create([
+            'email' => 'inactive@example.com',
+            'password' => Hash::make('password123'),
+            'is_activated' => false,
+            'role' => 'client',
+        ]);
+
+        $this->postJson('/api/login', [
+            'email' => 'inactive@example.com',
+            'password' => 'password123',
+        ])->assertStatus(403);
+    }
+
+
     
     public function test_register_with_specific_role(): void
     {
