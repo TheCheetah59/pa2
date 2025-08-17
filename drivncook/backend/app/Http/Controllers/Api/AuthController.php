@@ -83,6 +83,26 @@ class AuthController extends Controller
     }
 
     /**
+     * Return current admin user if authenticated and activated.
+     */
+    public function admin(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if (!$user->is_activated) {
+            return response()->json(['message' => 'Account inactive.'], 403);
+        }
+
+        return response()->json($user);
+    }
+
+
+
+    /**
      * Déconnexion - supprime le token courant
      */
     public function logout(Request $request)

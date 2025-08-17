@@ -75,6 +75,11 @@ Route::get('/activate/{token}', [ActivationController::class, 'index']);
 
 // Login client
 Route::post('/customer/login', [CustomerAuthController::class, 'login']);
+// Get current admin user
+Route::get('/auth/admin', [AuthController::class, 'admin'])
+    ->middleware(['auth:sanctum', 'can:admin-only']);
+
+
 
 /*
 |--------------------------------------------------------------------------
