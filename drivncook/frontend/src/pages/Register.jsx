@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Register = () => {
-  const { register, logout } = useAuth();
-  const navigate = useNavigate();
+  const { register } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -27,11 +26,7 @@ const Register = () => {
     setSuccess("");
     try {
       await register(form);
-        setSuccess("Vérifiez votre email pour activer votre compte");
-        setTimeout(() => {
-        logout();
-        navigate("/login");
-      }, 2000);
+      setSuccess("Vérifiez votre email pour activer votre compte");
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});

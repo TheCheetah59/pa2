@@ -44,14 +44,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (payload) => {
-    await api.get("/sanctum/csrf-cookie");
     const { data } = await api.post("/register", payload);
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
-    return data;
+    return data.message;
   };
 
   const logout = async () => {

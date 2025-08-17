@@ -20,6 +20,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
+            'role' => 'required|string|in:admin,client,franchise',
         ]);
 
         $token = Str::random(60);
@@ -28,6 +29,7 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'role' => $data['role'],
             'is_activated' => false,
             'activation_token' => $token,
             'activation_token_expires_at' => now()->addDay(),
@@ -37,7 +39,6 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'User registered. Please check your email for activation link.',
-            'user' => $user,
         ], 201);
     }
 
@@ -63,33 +64,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Connexion API - renvoie un token Sanctum
-     */
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $user = User::where('email', $request->input('email'))->first();
-
-        if (!$user || !Hash::check($request->input('password'), $user->password)) {
-            return response()->json(['message' => 'Identifiants invalides'], 401);
-        }
-
-        if (!$user->is_activated) {
-            return response()->json([
-                'message' => 'Account not activated',
-                'is_activated' => false,
-            ], 403);
-        }
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
+@@ -93,26 +94,26 @@ public function login(Request $request)
         ]);
     }
 

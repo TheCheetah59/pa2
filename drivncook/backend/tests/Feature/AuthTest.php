@@ -20,6 +20,7 @@ class AuthTest extends TestCase
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'password123',
+            'role' => 'client',
         ]);
 
         $response->assertStatus(201);
@@ -39,6 +40,7 @@ class AuthTest extends TestCase
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
             'password' => 'password123',
+            'role' => 'client',
         ]);
 
         $user = User::where('email', 'jane@example.com')->first();
@@ -69,5 +71,22 @@ class AuthTest extends TestCase
             ->getJson('/api/me')
             ->assertStatus(200)
             ->assertJson(['email' => 'jane@example.com']);
+    }
+
+    
+    public function test_register_with_specific_role(): void
+    {
+        Notification::fake();
+
+        $this->postJson('/api/register', [
+            'name' => 'Alice Role',
+            'email' => 'alice@example.com',
+            'password' => 'password123',
+            'role' => 'franchise',
+        ])->assertStatus(201);
+
+        $user = User::where('email', 'alice@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('franchise', $user->role);
     }
 }
