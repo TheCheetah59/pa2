@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -20,8 +20,8 @@ const Login = () => {
     setGeneralError("");
     setSuccess("");
     try {
-      const { user } = await login(form);
-      setSuccess("Connexion réussie !");
+      const { message, user } = await signIn(form);
+      setSuccess(message);
       if (!user.is_activated) {
         navigate("/waiting");
       } else {

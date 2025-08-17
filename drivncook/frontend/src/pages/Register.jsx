@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Register = () => {
-  const { register } = useAuth();
+  const { signUp } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -25,7 +25,7 @@ const Register = () => {
     setGeneralError("");
     setSuccess("");
     try {
-      const message = await register(form);
+      const { message } = await signUp(form);
       setSuccess(message);
     } catch (err) {
       if (err.response?.status === 422) {

@@ -33,8 +33,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (payload) => {
-    await api.get("/sanctum/csrf-cookie");
-    const { data } = await api.post("/login", payload);
+    const { data } = await api.post("/api/login", payload);
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("token", data.token);
@@ -44,10 +43,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (payload) => {
-    const {
-      data: { message },
-    } = await api.post("/register", payload);
-    return message;
+    await api.post("/api/register", payload);
+    return true;
+  };
+
+  const signIn = async (payload) => {
+    const data = await login(payload);
+    return {
+      message: data.message || "Connexion réussie !",
+      user: data.user,
+    };
+  };
+
+  const signUp = async (payload) => {
+    await register(payload);
+    return { message: "Inscription réussie !" };
   };
 
   const logout = async () => {
@@ -60,7 +70,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, login, register, logout, signIn, signUp }}
+    >
       {children}
     </AuthContext.Provider>
   );
