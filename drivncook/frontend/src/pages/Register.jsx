@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Register = () => {
   const { signUp } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -13,8 +14,7 @@ const Register = () => {
     role: "client",
   });
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState("");
-  const [generalError, setGeneralError] = useState("");
+  const [flash, setFlash] = useState("");
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,16 +22,19 @@ const Register = () => {
   const submit = async (e) => {
     e.preventDefault();
     setErrors({});
-    setGeneralError("");
-    setSuccess("");
+    setFlash("");
     try {
-      const { message } = await signUp(form);
-      setSuccess(message);
+      await signUp(form);
+      navigate("/login", {
+        state: {
+          flash: "Compte créé. Vérifiez votre e-mail pour l’activation.",
+        },
+      });
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
       } else {
-        setGeneralError(err.response?.data?.message || "Une erreur est survenue");
+        setFlash(err.response?.data?.message);
       }
     }
   };
@@ -161,14 +164,9 @@ const Register = () => {
       <p className="auth-message">
         <Link to="/login">Déjà inscrit ?</Link>
       </p>
-      {generalError && (
+      {flash && (
         <div aria-live="polite">
-          <p className="auth-message auth-error">{generalError}</p>
-        </div>
-      )}
-      {success && (
-        <div aria-live="polite">
-          <p className="auth-message auth-success">{success}</p>
+          <p className="auth-message auth-error">{flash}</p>
         </div>
       )}
     </form>
