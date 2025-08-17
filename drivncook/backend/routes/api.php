@@ -83,7 +83,7 @@ Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     
     // Profil admin/staff
     Route::get('/me', [AuthController::class, 'me']);

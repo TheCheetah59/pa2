@@ -20,7 +20,7 @@ class UserManagementTest extends TestCase
         $inactive2 = User::factory()->create(['is_activated' => false]);
         $active = User::factory()->create(['is_activated' => true]);
 
-        $response = $this->getJson('/api/admin/users');
+        $response = $this->getJson('/api/users');
 
         $response->assertStatus(200);
         $this->assertCount(2, $response->json());
@@ -33,7 +33,7 @@ class UserManagementTest extends TestCase
 
         $user = User::factory()->create(['is_activated' => false]);
 
-        $this->postJson('/api/admin/users/' . $user->id . '/activate')
+        $this->patchJson('/api/users/' . $user->id . '/activate')
             ->assertStatus(200)
             ->assertJson(['user' => ['id' => $user->id, 'is_activated' => true]]);
 
@@ -48,7 +48,7 @@ class UserManagementTest extends TestCase
         $user = User::factory()->create(['is_activated' => true]);
 
         
-        $this->postJson('/api/admin/users/' . $user->id . '/suspend')
+        $this->patchJson('/api/users/' . $user->id . '/suspend')
             ->assertStatus(200)
             ->assertJson(['user' => ['id' => $user->id, 'is_activated' => false]]);
 
