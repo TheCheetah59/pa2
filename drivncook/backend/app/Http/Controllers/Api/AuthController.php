@@ -43,32 +43,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Activate a user using the given token.
-     */
-    public function activate(string $token)
-    {
-        $user = User::where('activation_token', $token)
-            ->where('activation_token_expires_at', '>', now())
-            ->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'Invalid or expired activation token'], 400);
-        }
-
-        $user->is_activated = true;
-        $user->activation_token = null;
-        $user->activation_token_expires_at = null;
-        $user->save();
-
-        return response()->json(['message' => 'Account activated successfully']);
-    }
-
-    /**
-@@ -93,26 +94,26 @@ public function login(Request $request)
-        ]);
-    }
-
-    /**
      * Return authenticated user.
      */
     public function me(Request $request)

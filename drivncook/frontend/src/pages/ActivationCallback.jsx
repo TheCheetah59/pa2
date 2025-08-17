@@ -13,7 +13,11 @@ const ActivationCallback = () => {
         await api.get(`/api/activate/${token}`);
         navigate("/login?activated=1", { replace: true });
       } catch (err) {
-        setError(err.response?.data?.message || "Une erreur est survenue");
+        if (err.response?.status === 404) {
+          setError("Token non valide ou expiré");
+        } else {
+          setError(err.response?.data?.message || "Une erreur est survenue");
+        }
       }
     };
     activate();

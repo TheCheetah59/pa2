@@ -73,6 +73,12 @@ class AuthTest extends TestCase
             ->assertJson(['email' => 'jane@example.com']);
     }
 
+    public function test_activation_with_invalid_token_returns_404(): void
+    {
+        $this->getJson('/api/activate/invalid-token')
+            ->assertStatus(404)
+            ->assertJson(['message' => 'Token non valide ou expiré']);
+    }
     
     public function test_register_with_specific_role(): void
     {

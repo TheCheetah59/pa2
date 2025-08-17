@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\Api\ActivationController;
 use App\Http\Controllers\EventRegistrationController;
 
 use App\Http\Controllers\FranchiseeController;
@@ -70,7 +71,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 // Account activation
-Route::get('/activate/{token}', [AuthController::class, 'activate']);
+Route::get('/activate/{token}', [ActivationController::class, 'index']);
 
 
 // Login client
