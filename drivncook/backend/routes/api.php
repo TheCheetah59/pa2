@@ -79,6 +79,10 @@ Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 Route::get('/auth/admin', [AuthController::class, 'admin'])
     ->middleware(['auth:sanctum', 'can:admin-only']);
 
+// Current authenticated user
+Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
+
+
 
 
 /*
@@ -89,9 +93,6 @@ Route::get('/auth/admin', [AuthController::class, 'admin'])
 
 Route::middleware(['auth:sanctum', 'activated', 'role:admin'])->group(function () {
     
-    // Profil admin/staff
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::get('/user', [AuthController::class, 'me']);
 
     
     // Déconnexion admin/staff
