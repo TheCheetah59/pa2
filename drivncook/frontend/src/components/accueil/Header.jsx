@@ -41,8 +41,8 @@ const Header = ({ t }) => {
               <a href="#contact">{t ? t.nav.contact : "Contact"}</a>
             </li>
             <li>
-              <button className="order-btn">
-                {t ? t.nav.order : "Commander"}
+              <button className="login-btn">
+                <a href="/login">{t ? t.nav.login : "Connexion"}</a>
               </button>
             </li>
           </ul>

@@ -19,6 +19,8 @@
   box-sizing: border-box;
 }
 
+
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
@@ -93,7 +95,7 @@ body {
   color: var(--primary-color);
 }
 
-.order-btn {
+.login-btn {
   background: var(--primary-color);
   color: var(--text-light);
   border: none;
@@ -104,9 +106,15 @@ body {
   transition: var(--transition);
 }
 
-.order-btn:hover {
+.login-btn:hover {
   background: #c0392b;
   transform: translateY(-2px);
+}
+
+.login-btn a {
+  color: var(--text-light);
+  text-decoration: none;
+  font-weight: 700;
 }
 
 .hamburger {

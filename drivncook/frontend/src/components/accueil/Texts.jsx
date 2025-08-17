@@ -8,7 +8,7 @@ const texts = {
       services: "Services",
       menu: "Menu",
       contact: "Contact",
-      order: "Commander",
+      login: "Connexion",
     },
     hero: {
       title: "Mangez mobile, mangez bon",
