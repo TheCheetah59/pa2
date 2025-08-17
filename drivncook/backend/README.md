@@ -21,6 +21,20 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Authentication
+
+The API uses [Laravel Sanctum](https://laravel.com/docs/sanctum) for token-based
+authentication. To log in, send a `POST` request to `/api/login` with an
+`email` and `password`. A valid and activated account will receive a response
+containing a `token`, `name`, `email` and `role` fields. The token should be
+used as a Bearer token for subsequent requests.
+
+If the provided credentials are incorrect the endpoint returns a `401`
+response. Accounts that have not been activated yet receive a `403` response
+with the message `Compte non activé`.
+
+
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

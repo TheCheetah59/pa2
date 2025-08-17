@@ -41,6 +41,37 @@ class AuthController extends Controller
             'message' => 'User registered. Please check your email for activation link.',
         ], 201);
     }
+    /**
+     * Handle an authentication attempt.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            return response()->json(['message' => 'Identifiants invalides'], 401);
+        }
+
+        if (!$user->is_activated) {
+            return response()->json(['message' => 'Compte non activé'], 403);
+        }
+
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'role'  => $user->role,
+        ]);
+    }
+
+
 
     /**
 

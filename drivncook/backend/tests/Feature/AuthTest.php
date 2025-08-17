@@ -52,7 +52,8 @@ class AuthTest extends TestCase
             'email' => 'jane@example.com',
             'password' => 'password123',
         ]);
-        $response->assertStatus(403);
+        $response->assertStatus(403)
+                 ->assertJson(['message' => 'Compte non activé']);
 
         // Activate user
         $this->getJson('/api/activate/' . $user->activation_token)
@@ -63,7 +64,13 @@ class AuthTest extends TestCase
             'email' => 'jane@example.com',
             'password' => 'password123',
         ]);
-        $login->assertStatus(200)->assertJsonStructure(['token', 'user']);
+        $login->assertStatus(200)
+              ->assertJsonStructure(['token', 'name', 'email', 'role'])
+              ->assertJson([
+                  'name' => 'Jane Doe',
+                  'email' => 'jane@example.com',
+                  'role' => 'client',
+              ]);
 
         $token = $login->json('token');
 
@@ -118,7 +125,24 @@ class AuthTest extends TestCase
         $this->postJson('/api/login', [
             'email' => 'inactive@example.com',
             'password' => 'password123',
-        ])->assertStatus(403);
+        ])->assertStatus(403)
+          ->assertJson(['message' => 'Compte non activé']);
+    }
+
+    public function test_login_returns_401_for_invalid_credentials(): void
+    {
+        User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => Hash::make('password123'),
+            'is_activated' => true,
+            'role' => 'client',
+        ]);
+
+        $this->postJson('/api/login', [
+            'email' => 'user@example.com',
+            'password' => 'wrongpassword',
+        ])->assertStatus(401)
+          ->assertJson(['message' => 'Identifiants invalides']);
     }
 
 
