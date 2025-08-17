@@ -41,19 +41,18 @@ use App\Http\Controllers\AdminController;
 |--------------------------------------------------------------------------
 */
 
-// Test route
-Route::get('/test', function () {
-    return response()->json(['message' => 'API works']);
-});
+if (config('debug.enabled')) {
+    // Test route (documented in config/debug.php)
+    Route::get('/test', function () {
+        return response()->json(['message' => 'API works']);
+    });
+}
 
 // Routes publiques pour consultation
 Route::apiResource('menus', MenuController::class)->only(['index', 'show']);
 Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
 Route::apiResource('events', EventController::class)->only(['index']);
 
-// Routes sans auth pour testing (à supprimer en production)
-Route::apiResource('warehouses', WarehouseController::class);
-Route::apiResource('trucks', TruckController::class);
 
 // Inscription client (publique)
 Route::post('/customers', [CustomerController::class, 'store']);
@@ -104,6 +103,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
     
     // Gestion du stock
+    Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('stock-items', StockItemController::class);
     Route::apiResource('stock-orders', StockOrderController::class);
     Route::apiResource('stock-order-items', StockOrderItemController::class);
