@@ -9,7 +9,7 @@ const HeroSection = () => {
     <section id="home" className="hero">
       <div className="hero-container">
         <div className="hero-content">
-          <h1 className="hero-title">{t("hero.title")}</h1>
+          <h1 className="hero-title">{t("hero_title")}</h1>
           <p className="hero-subtitle">{t("hero.subtitle")}</p>
           <button className="cta-button">{t("hero.cta")}</button>
         </div>

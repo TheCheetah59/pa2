@@ -1,5 +1,10 @@
 {
   "welcome": "Welcome",
+  "hero_title": "Eat mobile, eat well",
+  "home": "Home",
+  "menu": "Menu",
+  "contact": "Contact",
+  "login": "Login",
   "nav": {
     "home": "Home",
     "services": "Services",

@@ -1,5 +1,10 @@
 {
   "welcome": "Bienvenue",
+  "hero_title": "Mangez mobile, mangez bon",
+  "home": "Accueil",
+  "menu": "Menu",
+  "contact": "Contact",
+  "login": "Connexion",
   "nav": {
     "home": "Accueil",
     "services": "Services",
