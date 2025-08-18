@@ -1,14 +1,12 @@
-import React, { useState } from "react"; // ← Ajout de useState
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import logoSite from "../../assets/image_logo_site.png";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // ← État du menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen); // ← Fonction toggle
-  };
+  const toggleMenu = () => setIsMenuOpen((v) => !v);
 
   return (
     <header className="header">
@@ -20,47 +18,48 @@ const Header = () => {
               alt="Driv'n Cook"
               className="nav-logo-img"
               onError={(e) => {
-                e.target.style.display = "none";
-                e.target.nextElementSibling.style.display = "block";
+                e.currentTarget.style.display = "none";
+                e.currentTarget.nextElementSibling.style.display = "block";
               }}
             />
             <h2 style={{ display: "none" }}>DRIV'N COOK</h2>
           </div>
 
-          {/* Menu avec classe dynamique */}
           <ul className={`nav-menu ${isMenuOpen ? "active" : ""}`}>
             <li>
-              <a href="#home">{t("home")}</a>
+              <a href="#home">{t("nav.home")}</a>
             </li>
             <li>
-              <a href="#services">{t("services")}</a>
+              <a href="#services">{t("nav.services")}</a>
             </li>
             <li>
-              <a href="#menu">{t("menu")}</a>
+              <a href="#menu">{t("nav.menu")}</a>
             </li>
             <li>
-              <a href="#contact">{t("contact")}</a>
+              <a href="#contact">{t("nav.contact")}</a>
             </li>
             <li>
-              <button className="login-btn">
-                <a href="/login">{t("login")}</a>
-              </button>
+              <a className="login-btn" href="/login">
+                {t("nav.login")}
+              </a>
             </li>
           </ul>
+
           <div className="lang-switcher">
             <button onClick={() => i18n.changeLanguage("fr")}>fr</button>
             <button onClick={() => i18n.changeLanguage("en")}>en</button>
           </div>
 
-          {/* Hamburger avec événement click et animation */}
-          <div
+          <button
             className={`hamburger ${isMenuOpen ? "active" : ""}`}
-            onClick={toggleMenu} // ← Événement click
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
           >
             <span></span>
             <span></span>
             <span></span>
-          </div>
+          </button>
         </div>
       </nav>
     </header>
