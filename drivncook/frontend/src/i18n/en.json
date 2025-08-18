@@ -1,7 +1,57 @@
 {
   "welcome": "Welcome",
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "menu": "Menu",
+    "contact": "Contact",
+    "login": "Login"
+  },
+  "hero": {
+    "title": "Eat mobile, eat well",
+    "subtitle": "Quality dishes made with fresh, local ingredients, directly from our food trucks",
+    "cta": "Discover our menu"
+  },
+  "services": {
+    "title": "Our Services",
+    "foodtruck": {
+      "title": "Food Trucks",
+      "description": "Equipped trucks across Île-de-France serving fresh meals"
+    },
+    "franchise": {
+      "title": "Franchises",
+      "description": "Join our network and become an entrepreneur with our proven concept"
+    },
+    "loyalty": {
+      "title": "Loyalty Card",
+      "description": "Enjoy exclusive benefits, discounts and invitations to our events"
+    },
+    "online": {
+      "title": "Online Ordering",
+      "description": "Order and book your favorite dishes directly from our site"
+    },
+    "events": {
+      "title": "Events",
+      "description": "Tastings, culinary animations and special events all year round"
+    },
+    "courses": {
+      "title": "Cooking Classes",
+      "description": "Access personalized classes every month thanks to our online subscription"
+    }
+  },
+  "whyUs": {
+    "title": "Why choose us?",
+    "fresh": "🌱 Fresh and local products",
+    "quality": "⭐ Guaranteed quality",
+    "mobile": "🚚 Mobile service",
+    "experience": "👨‍🍳 Craft expertise"
+  },
+  "about": {
+    "title": "Who are we?",
+    "description": "Created in 2013 in the 12th district of Paris, Driv'n Cook has become a reference in the food truck sector. Our unique concept combines culinary quality and mobility, with fresh, raw and mostly local products. With more than 30 franchisees, we continue our expansion in Île-de-France."
+  },
   "footer": {
-    "email": "contact@example.com",
+    "email": "contact@drivncook.fr",
     "followUs": "Follow us"
   }
 }

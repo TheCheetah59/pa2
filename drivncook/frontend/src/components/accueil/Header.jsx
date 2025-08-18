@@ -1,8 +1,9 @@
 import React, { useState } from "react"; // ← Ajout de useState
+import { useTranslation } from "react-i18next";
 import logoSite from "../../assets/image_logo_site.png";
 
-const Header = ({ t }) => {
-  // ← Ajout des props t
+const Header = () => {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false); // ← État du menu
 
   const toggleMenu = () => {
@@ -29,20 +30,20 @@ const Header = ({ t }) => {
           {/* Menu avec classe dynamique */}
           <ul className={`nav-menu ${isMenuOpen ? "active" : ""}`}>
             <li>
-              <a href="#home">{t ? t.nav.home : "Accueil"}</a>
+              <a href="#home">{t("nav.home")}</a>
             </li>
             <li>
-              <a href="#services">{t ? t.nav.services : "Services"}</a>
+              <a href="#services">{t("nav.services")}</a>
             </li>
             <li>
-              <a href="#menu">{t ? t.nav.menu : "Menu"}</a>
+              <a href="#menu">{t("nav.menu")}</a>
             </li>
             <li>
-              <a href="#contact">{t ? t.nav.contact : "Contact"}</a>
+              <a href="#contact">{t("nav.contact")}</a>
             </li>
             <li>
               <button className="login-btn">
-                <a href="/login">{t ? t.nav.login : "Connexion"}</a>
+                <a href="/login">{t("nav.login")}</a>
               </button>
             </li>
           </ul>
