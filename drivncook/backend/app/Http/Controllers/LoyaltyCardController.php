@@ -6,6 +6,7 @@ use App\Models\LoyaltyCard;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class LoyaltyCardController extends Controller
 {
@@ -14,14 +15,16 @@ class LoyaltyCardController extends Controller
         return LoyaltyCard::with('customer')->get();
     }
 
-    public function show($id): LoyaltyCard
+    public function show(): ?LoyaltyCard
     {
-        return LoyaltyCard::with('customer')->findOrFail($id);
+        $customer = Auth::guard('customer')->user();
+        return $customer?->loyaltyCard()->with('customer')->first();
     }
 
-    public function update(Request $request, $id): LoyaltyCard
+    public function update(Request $request): LoyaltyCard
     {
-        $loyaltyCard = LoyaltyCard::findOrFail($id);
+        $customer = Auth::guard('customer')->user();
+        $loyaltyCard = $customer->loyaltyCard()->firstOrFail();
 
         $validated = $request->validate([
             'points'       => 'sometimes|integer|min:0',

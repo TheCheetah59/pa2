@@ -7,7 +7,7 @@ const DashboardAdmin = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data } = await api.get("/api/admin/users");
+        const { data } = await api.get("/api/users");
         setUsers(Array.isArray(data) ? data.filter((u) => !u.is_activated) : []);
       } catch (err) {
         console.error(err);
@@ -18,7 +18,7 @@ const DashboardAdmin = () => {
 
   const handleAction = async (id, action) => {
     try {
-      await api.post(`/api/admin/users/${id}/${action}`);
+      await api.patch(`/api/users/${id}/${action}`);
       setUsers((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
       console.error(err);
