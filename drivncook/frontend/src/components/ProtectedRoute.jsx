@@ -1,11 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
-const roleRedirect = {
-  client: "/dashboard",
-  franchise: "/dashboard-franchise",
-  admin: "/dashboard-admin",
-};
 
 const ProtectedRoute = ({ roles }) => {
   const { user } = useAuth();
@@ -19,7 +14,7 @@ const ProtectedRoute = ({ roles }) => {
   }
 
   if (roles && !roles.includes(user.role)) {
-    return <Navigate to={roleRedirect[user.role] || "/dashboard"} replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
