@@ -18,13 +18,18 @@ class LoyaltyCardController extends Controller
     public function show(): ?LoyaltyCard
     {
         $customer = Auth::guard('customer')->user();
-        return $customer?->loyaltyCard()->with('customer')->first();
+        $loyaltyCard = $customer?->loyaltyCard;
+        return $loyaltyCard ? $loyaltyCard->load('customer') : null;
     }
 
     public function update(Request $request): LoyaltyCard
     {
         $customer = Auth::guard('customer')->user();
-        $loyaltyCard = $customer->loyaltyCard()->firstOrFail();
+        $loyaltyCard = $customer?->loyaltyCard;
+
+        if (!$loyaltyCard) {
+            abort(404, 'Carte de fidélité non trouvée');
+        }
 
         $validated = $request->validate([
             'points'       => 'sometimes|integer|min:0',
