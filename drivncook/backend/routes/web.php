@@ -7,6 +7,7 @@ use App\Models\Franchisee;
 // --- Sanctum + Auth (session-based) ---
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActivationController;
+use App\Http\Controllers\Api\CustomerAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,7 +20,7 @@ use App\Http\Controllers\Api\ActivationController;
 */
 
 // 1) CSRF cookie (appelé depuis le front avant /login)
-Route::get('/sanctum/csrf-cookie', fn () => response()->noContent());
+Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookieController::class, 'show']);
 
 // 2) Auth admin/staff via session Sanctum
 Route::post('/login',    [AuthController::class, 'login']);
@@ -49,6 +50,9 @@ Route::get('/franchisee/code/{code}/report', function ($code) {
     $pdf = Pdf::loadView('franchisee-report', compact('franchisees'));
     return $pdf->stream("rapport-{$code}.pdf");
 });
+
+Route::post('/customer/login', [CustomerAuthController::class, 'login']);
+Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:customer');
 
 // 5) Catch‑all pour la SPA (doit rester le DERNIER)
 Route::get('{any}', function () {

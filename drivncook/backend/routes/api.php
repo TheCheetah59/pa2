@@ -4,7 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\EventRegistrationController;
 
 use App\Http\Controllers\FranchiseeController;
@@ -61,8 +60,6 @@ Route::post('/contact', [ContactController::class, 'store']);
 |--------------------------------------------------------------------------
 */
 
-// Login client (si tu utilises un guard "customer" token-based ou session)
-Route::post('/customer/login', [CustomerAuthController::class, 'login']);
 
 // Utilisateur admin courant (expose des infos si déjà auth Sanctum)
 Route::get('/auth/admin', [AuthController::class, 'admin'])
@@ -146,8 +143,6 @@ Route::middleware(['auth:customer'])->group(function () {
     // Profil client
     Route::get('/customer/profile', fn (Request $request) => $request->user('customer'));
 
-    // Déconnexion client
-    Route::post('/customer/logout', [CustomerAuthController::class, 'logout']);
 
     // Compte client
     Route::apiResource('customers', CustomerController::class)->only(['show', 'update', 'destroy']);
