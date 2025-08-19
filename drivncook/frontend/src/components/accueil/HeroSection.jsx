@@ -27,7 +27,7 @@ const HeroSection = () => {
             <div className="food-truck-placeholder" style={{ display: "none" }}>
               🚚
             </div>
-            🚚
+            
           </div>
         </div>
       </div>
