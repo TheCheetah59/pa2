@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import logoSite from "../../assets/image_logo_site.png";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -36,10 +37,10 @@ const Header = () => {
               <a href="#services">{t("nav.services")}</a>
             </li>
             <li>
-              <a href="#menu">{t("nav.menu")}</a>
+              <Link to="/menu">{t("nav.menu")}</Link>
             </li>
             <li>
-              <a href="#contact">{t("nav.contact")}</a>
+              <Link to="/contact">{t("nav.contact")}</Link>
             </li>
             {user ? (
               <>
@@ -53,10 +54,10 @@ const Header = () => {
             ) : (
               <>
                 <li>
-                  <a href="/login">Connexion</a>
+                  <a href="/login">{t("nav.login")}</a>
                 </li>
                 <li>
-                  <a href="/register">Inscription</a>
+                  <a href="/register">{t("nav.register")}</a>
                 </li>
               </>
             )}

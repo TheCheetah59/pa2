@@ -6,7 +6,7 @@ import AboutSection from "../components/accueil/AboutSection";
 import HeroSection from "../components/accueil/HeroSection"; // ← Import du composant HeroSection
 import ServicesSection from "../components/accueil/ServicesSection"; // ← Import du composant ServicesSection
 import WhyChooseUs from "../components/accueil/WhyChooseUs";
-import Footer from "../components/accueil/Footer"; // ← Import du composant Footer
+import Footer from "../components/common/Footer"; // ← Import du composant Footer
 
 
 
