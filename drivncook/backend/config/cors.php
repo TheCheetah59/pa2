@@ -1,9 +1,20 @@
 <?php
 
 return [
-    'paths' => ['api/*', 'login', 'logout', 'register', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+        'login', 'logout', 'register',
+        'customer/login', 'customer/logout',
+    ],
+
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:5173'],
+
+    // IMPORTANT: origins exactes quand supports_credentials=true
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ],
     'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
@@ -11,5 +22,6 @@ return [
 
     'max_age' => 0,
 
+    // Nécessaire pour envoyer/recevoir les cookies
     'supports_credentials' => true,
 ];

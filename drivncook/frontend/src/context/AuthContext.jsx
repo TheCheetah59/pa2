@@ -1,85 +1,85 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import api from "../axios";
-import { getLogoutEndpoint } from "./getLogoutEndpoint.js";
+// src/context/AuthContext.jsx
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import api from "../axios"; // axios avec withCredentials: true
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
-
-  useEffect(() => {
-    if (token) {
-      api.defaults.headers.common.Authorization = `Bearer ${token}`;
-      const fetchUser = async () => {
-        try {
-          const { data } = await api.get("/api/me");
-          setUser(data);
-          localStorage.setItem("user", JSON.stringify(data));
-        } catch {
-          setToken(null);
-          setUser(null);
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          delete api.defaults.headers.common.Authorization;
-        }
-      };
-      fetchUser();
-    } else {
-      delete api.defaults.headers.common.Authorization;
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
     }
-  }, [token]);
+  });
+  const [loading, setLoading] = useState(true);
 
-  const login = async (payload) => {
-    const { data } = await api.post("/api/login", payload);
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
-    return data;
-  };
+  // Tentative de restauration de session au montage
+  useEffect(() => {
+    let alive = true;
 
-  const register = async (payload) => {
-    await api.get("/sanctum/csrf-cookie"); // ← OBLIGATOIRE
-    const { data } = await api.post("/api/register", payload);
-    return data;
-  };
+    api
+      .get("/api/me")
+      .then(({ data }) => {
+        if (!alive) return;
+        setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
+      })
+      .catch((err) => {
+        // 401 = pas connecté => normal au premier rendu, on ignore
+        if (err?.response?.status !== 401) {
+          console.error("Init /api/me échoué:", err);
+        }
+        if (alive) {
+          setUser(null);
+          localStorage.removeItem("user");
+        }
+      })
+      .finally(() => alive && setLoading(false));
 
-  const signIn = async (payload) => {
-    const data = await login(payload);
-    return {
-      message: data.message || "Connexion réussie !",
-      user: data.user,
+    return () => {
+      alive = false;
     };
+  }, []);
+
+  // --- Connexion (Sanctum session/cookies) ---
+  const login = async (credentials) => {
+    await api.get("/sanctum/csrf-cookie");
+    const { data } = await api.post("/login", credentials);
+    const currentUser = data.user ?? data;
+
+    if (!currentUser?.is_activated) {
+      await api.post("/logout");
+      throw new Error("Compte non activé");
+    }
+
+    setUser(currentUser);
+    localStorage.setItem("user", JSON.stringify(currentUser));
+    return currentUser;
   };
 
-  const signUp = async (payload) => {
-    await register(payload);
-    return { message: "Inscription réussie !" };
-  };
-
+  // --- Déconnexion ---
   const logout = async () => {
-    const endpoint = getLogoutEndpoint(user);
-    await api.post(endpoint);
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    delete api.defaults.headers.common.Authorization;
+    try {
+      await api.post("/logout");
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user");
+    }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{ user, token, login, register, logout, signIn, signUp }}
-    >
-      {children}
-    </AuthContext.Provider>
+  // --- Inscription (pas d’auto-login si activation mail requise) ---
+  const register = async (payload) => {
+    await api.get("/sanctum/csrf-cookie");
+    return api.post("/register", payload);
+  };
+
+  const value = useMemo(
+    () => ({ user, loading, login, logout, register }),
+    [user, loading]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

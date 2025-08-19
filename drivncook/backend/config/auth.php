@@ -36,19 +36,20 @@ return [
     */
 
     'guards' => [
-    'web' => [
+        // Admin / staff (session + cookies)
+        'web' => [
         'driver' => 'session',
         'provider' => 'users',
-    ],
+        ],
 
     'api' => [
         'driver' => 'sanctum',
         'provider' => 'users',
     ],
 
-    // Guard pour les clients
+    // Clients **en session/cookies** (comme les admins)
     'customer' => [
-        'driver' => 'sanctum',
+        'driver' => 'session',   
         'provider' => 'customers',
     ],
     ],
