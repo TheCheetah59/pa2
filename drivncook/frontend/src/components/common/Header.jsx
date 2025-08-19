@@ -41,9 +41,6 @@ const Header = () => {
             <li>
               <a href="#contact">{t("nav.contact")}</a>
             </li>
-            <li>
-              <button className="order-btn">{t("nav.order")}</button>
-            </li>
             {user ? (
               <>
                 <li>

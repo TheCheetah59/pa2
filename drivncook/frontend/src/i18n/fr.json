@@ -10,7 +10,11 @@
     "services": "Services",
     "menu": "Menu",
     "contact": "Contact",
-    "login": "Connexion"
+    "order": "Commander",
+    "login": "Connexion",
+    "register": "Inscription",
+    "profile": "Profil",
+    "logout": "Déconnexion"
   },
   "hero": {
     "title": "Mangez mobile, mangez bon",

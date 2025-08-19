@@ -4,14 +4,18 @@
   "home": "Home",
   "menu": "Menu",
   "contact": "Contact",
-  "login": "Login",
+
 
   "nav": {
     "home": "Home",
     "services": "Services",
     "menu": "Menu",
     "contact": "Contact",
-    "login": "Login"
+    "order": "Order",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile",
+    "logout": "Logout"
   },
 
   "hero": {
