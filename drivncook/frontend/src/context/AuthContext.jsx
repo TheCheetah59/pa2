@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../axios";
+import { getLogoutEndpoint } from "./getLogoutEndpoint.js";
 
 const AuthContext = createContext();
 
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    const endpoint = user?.role === "customer" ? "/customer/logout" : "/logout";
+    const endpoint = getLogoutEndpoint(user);
     await api.post(endpoint);
     setToken(null);
     setUser(null);
