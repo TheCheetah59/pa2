@@ -44,8 +44,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (payload) => {
-    await api.post("/api/register", payload);
-    return true;
+    await api.get("/sanctum/csrf-cookie"); // ← OBLIGATOIRE
+    const { data } = await api.post("/api/register", payload);
+    return data;
   };
 
   const signIn = async (payload) => {
