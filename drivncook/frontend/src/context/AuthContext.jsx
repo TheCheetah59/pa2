@@ -18,6 +18,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let alive = true;
 
+    if (["/login", "/register"].includes(window.location.pathname)) {
+      setLoading(false);
+      return () => {
+        alive = false;
+      };
+    }
+
     api
       .get("/api/me")
       .then(({ data }) => {
@@ -45,7 +52,12 @@ export const AuthProvider = ({ children }) => {
   // --- Connexion (Sanctum session/cookies) ---
   const login = async (credentials) => {
     await api.get("/sanctum/csrf-cookie");
-    const { data } = await api.post("/login", credentials);
+    let data;
+    try {
+      ({ data } = await api.post("/login", credentials));
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Login failed");
+    }
     const currentUser = data.user ?? data;
 
     if (!currentUser?.is_activated) {
@@ -81,5 +93,6 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+// eslint-disable-next-line react-refresh/only-export-components
 
 export const useAuth = () => useContext(AuthContext);

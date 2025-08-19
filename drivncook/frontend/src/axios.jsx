@@ -22,7 +22,7 @@ api.interceptors.response.use(
         await api.get("/sanctum/csrf-cookie");
         config._retry = true;
         return api(config);
-      } catch (e) {
+      } catch {
         // si ça échoue, on laisse tomber
       }
     }
