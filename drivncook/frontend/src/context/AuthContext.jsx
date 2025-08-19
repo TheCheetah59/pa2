@@ -61,7 +61,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await api.post("/logout");
+    const endpoint = user?.role === "customer" ? "/customer/logout" : "/logout";
+    await api.post(endpoint);
     setToken(null);
     setUser(null);
     localStorage.removeItem("token");

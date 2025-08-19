@@ -34,6 +34,7 @@ use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +57,9 @@ Route::apiResource('events', EventController::class)->only(['index']);
 
 // Inscription client (publique)
 Route::post('/customers', [CustomerController::class, 'store']);
+
+// Formulaire de contact
+Route::post('/contact', [ContactController::class, 'store']);
 
 /*
 |--------------------------------------------------------------------------
