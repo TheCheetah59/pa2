@@ -12,6 +12,7 @@ const WhyChooseUs = () => {
           <div className="advantage">{t("whyUs.quality")}</div>
           <div className="advantage">{t("whyUs.mobile")}</div>
           <div className="advantage">{t("whyUs.experience")}</div>
+          <div className="advantage">{t("whyUs.fast")}</div>
         </div>
       </div>
     </section>
