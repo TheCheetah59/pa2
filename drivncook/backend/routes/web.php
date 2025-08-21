@@ -28,15 +28,18 @@ Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookie
 Route::post('/login',  [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
-// 3) Vérification d'email Laravel (MustVerifyEmail) - CORRIGÉE
+// 3) Vérification d'email Laravel (MustVerifyEmail) - VERSION CORRIGÉE
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     try {
         $request->fulfill(); // marque l'email comme vérifié
         $front = env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173'));
-        return redirect($front . '/activation/callback?status=verified&message=' . urlencode('Email vérifié avec succès !'));
+        
+        // Redirection simple sans urlencode pour éviter les problèmes de headers
+        return redirect($front . '/activation/callback?status=verified');
+        
     } catch (\Exception $e) {
         $front = env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173'));
-        return redirect($front . '/activation/callback?status=error&message=' . urlencode('Lien de vérification invalide ou expiré'));
+        return redirect($front . '/activation/callback?status=error');
     }
 })->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 
