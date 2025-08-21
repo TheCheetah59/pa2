@@ -1,11 +1,21 @@
 // src/pages/ActivationCallback.jsx
-import { useMemo } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useMemo, useEffect } from "react";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 
 export default function ActivationCallback() {
   const [params] = useSearchParams();
-  const status = params.get("status");
+  const navigate = useNavigate();
+
+  const status = params.get("status"); // peut être null
   const success = useMemo(() => status === "verified", [status]);
+
+  // Optionnel: redirection automatique vers /login après 1,2s
+  useEffect(() => {
+    if (success) {
+      const t = setTimeout(() => navigate("/login", { replace: true }), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [success, navigate]);
 
   return (
     <div className="max-w-md mx-auto p-6">
@@ -23,7 +33,7 @@ export default function ActivationCallback() {
         <>
           <h1 className="text-2xl font-semibold mb-2">Vérification échouée</h1>
           <p className="mb-4">
-            Le lien est invalide ou expiré. Demande un nouvel envoi.
+            Lien invalide ou expiré. Demande un nouvel envoi.
           </p>
           <Link to="/activation/waiting" className="underline">
             Renvoyer le lien

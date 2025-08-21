@@ -1,39 +1,68 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import api from "../axios"; // axios.create({ baseURL: VITE_API_URL, withCredentials: true })
+
+/**
+ * Contrat des endpoints côté backend :
+ * - GET    /sanctum/csrf-cookie
+ * - POST   /api/auth/login            -> 204 (No Content)
+ * - POST   /api/auth/logout           -> 204
+ * - POST   /api/auth/register         -> 201 { message, user? }
+ * - GET    /api/auth/me               -> 200 { id, name, email, role }
+ * - POST   /api/auth/email/resend     -> 200 { message }
+ *
+ * NB : login/logout doivent être sous middleware "web" côté Laravel (sessions/CSRF).
+ */
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Cache local facultatif (utile pour éviter un flash au reload)
+  // --- state -----------------------------------------------------------------
   const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("user") || "null");
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
     }
   });
   const [loading, setLoading] = useState(true);
 
-  // ---- helpers --------------------------------------------------------------
-  const saveUser = (u) => {
+  // --- helpers ----------------------------------------------------------------
+  const saveUser = useCallback((u) => {
     setUser(u);
-    if (u) localStorage.setItem("user", JSON.stringify(u));
-    else localStorage.removeItem("user");
-  };
+    try {
+      if (u) localStorage.setItem("user", JSON.stringify(u));
+      else localStorage.removeItem("user");
+    } catch {
+      // ignore quota/JSON issues
+    }
+  }, []);
 
-  const me = async () => {
-    const { data } = await api.get("/api/auth/me");
+  const me = useCallback(async () => {
+    // Récupère l'utilisateur courant (protégé par auth:sanctum)
+    const { data } = await api.get("/api/auth/me", {
+      headers: { Accept: "application/json" },
+      // Évite la mise en cache agressive de certains proxys
+      params: { _t: Date.now() },
+    });
     saveUser(data);
     return data;
-  };
+  }, [saveUser]);
 
-  // ---- restauration de session au démarrage --------------------------------
+  // --- restauration de session au démarrage ----------------------------------
   useEffect(() => {
     let alive = true;
 
     const path = window.location.pathname;
-    // On évite l'appel initial /me sur les pages /login & /register
+    // On évite l'appel /me sur les pages login & register pour accélérer l'affichage
     if (path === "/login" || path === "/register") {
       setLoading(false);
       return () => {
@@ -43,6 +72,7 @@ export const AuthProvider = ({ children }) => {
 
     (async () => {
       try {
+        // Si la session existe côté serveur, /me renverra 200 avec l'utilisateur
         const data = await me();
         if (!alive) return;
         saveUser(data);
@@ -57,67 +87,68 @@ export const AuthProvider = ({ children }) => {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [me, saveUser]);
 
-  // ---- Auth -----------------------------------------------------------------
-
-  /**
-   * Login (Sanctum cookie)
-   * @param {{email:string,password:string}} credentials
-   * @param {boolean} isCustomer si tu as vraiment 2 endpoints (client/admin)
-   * @returns {Promise<object>} user courant
-   * NOTE: on RELAIE l'erreur axios telle quelle (ne pas wrapper) -> status utilisable dans Login.jsx
-   */
-  const login = async (credentials, isCustomer = false) => {
-    // Si tu utilises le flow Sanctum SPA, le csrf-cookie peut être utile
-    try {
-      // facultatif selon ta config, mais safe :
-      await api.get("/sanctum/csrf-cookie");
-    } catch {
-      // ignore
-    }
-
-    // Si tu n'as QU'UN seul endpoint, garde "/api/auth/login" pour tout le monde
-    const url = isCustomer ? "/api/customer/login" : "/api/auth/login";
-
-    try {
-      await api.post(url, credentials, {
-        headers: { Accept: "application/json" },
-      });
-      // après succès: récupère l'utilisateur courant via /me
-      const current = await me();
-      return current;
-    } catch (err) {
-      // très important: NE PAS créer un nouvel Error() → on perd status & payload
-      throw err;
-    }
-  };
+  // --- Auth API ---------------------------------------------------------------
 
   /**
-   * Logout
+   * Login (Sanctum, session cookie)
+   * @param {{ email: string, password: string }} credentials
+   * @param {boolean} isCustomer Utilise /api/customer/login si vrai (si tu as 2 endpoints)
+   * @returns {Promise<object>} Utilisateur courant (issu de /api/auth/me)
    */
-  const logout = async () => {
+  const login = useCallback(
+    async (credentials, isCustomer = false) => {
+      // Étape 1 : préparer le cookie XSRF (selon config Sanctum)
+      try {
+        await api.get("/sanctum/csrf-cookie");
+      } catch {
+        // Selon la config, l'appel peut déjà être fait par un autre écran — on ignore
+      }
+
+      // Étape 2 : POST login (retour attendu 204 No Content)
+      const url = isCustomer ? "/api/customer/login" : "/api/auth/login";
+      try {
+        await api.post(url, credentials, {
+          headers: { Accept: "application/json" },
+        });
+
+        // Étape 3 : récupérer l'utilisateur courant
+        const current = await me();
+        return current;
+      } catch (err) {
+        // Ne pas wrapper l'erreur pour conserver err.response.status et le message backend
+        throw err;
+      }
+    },
+    [me]
+  );
+
+  /**
+   * Logout (toujours tenter côté serveur, puis on nettoie le cache local)
+   */
+  const logout = useCallback(async () => {
     try {
       const isClient = user?.role === "client" || user?.role === "customer";
       const url = isClient ? "/api/customer/logout" : "/api/auth/logout";
-      await api.post(url, {});
+      await api.post(url, {}, { headers: { Accept: "application/json" } });
     } finally {
+      // On purge quoi qu'il arrive pour éviter les incohérences d'UI
       saveUser(null);
     }
-  };
+  }, [user, saveUser]);
 
   /**
    * Register — ne connecte PAS l'utilisateur
-   * @param {{name?:string,email:string,password:string,password_confirmation:string}} payload
-   * @returns {Promise<{message:string}>}
+   * @param {{ name?: string, email: string, password: string, password_confirmation: string, role?: string }} payload
+   * @returns {Promise<{ message: string, user?: object }>}
    */
-  const register = async (payload) => {
+  const register = useCallback(async (payload) => {
     try {
-      // (facultatif) CSRF si back attend une session
+      // Facultatif (si tu laisses register dans api.php, pas besoin de session)
       try {
         await api.get("/sanctum/csrf-cookie");
       } catch {}
-
       const { data } = await api.post("/api/auth/register", payload, {
         headers: {
           "Content-Type": "application/json",
@@ -125,27 +156,29 @@ export const AuthProvider = ({ children }) => {
         },
       });
 
-      // ❗️Pas d’auto-login ici
-      // On retourne simplement le message du backend
       return {
         message:
           data?.message ??
           "Inscription réussie. Vérifie ta boîte mail pour activer ton compte.",
+        user: data?.user,
       };
     } catch (err) {
-      // Laisse le composant gérer err.response.status === 422 etc.
       throw err;
     }
-  };
+  }, []);
 
   /**
-   * Renvoyer l'email d'activation (ouvert, rate‑limité)
+   * Renvoyer l'email d'activation (ouvert, mais à rate-limiter côté backend)
    * @param {string} email
-   * @returns {Promise<{message:string}>}
+   * @returns {Promise<{ message: string }>}
    */
-  const resendActivation = async (email) => {
+  const resendActivation = useCallback(async (email) => {
     try {
-      const { data } = await api.post("/api/auth/email/resend", { email });
+      const { data } = await api.post(
+        "/api/auth/email/resend",
+        { email },
+        { headers: { Accept: "application/json" } }
+      );
       return {
         message:
           data?.message ??
@@ -154,7 +187,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       throw err;
     }
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -162,11 +195,14 @@ export const AuthProvider = ({ children }) => {
       loading,
       login,
       logout,
-      register, // retourne seulement un message
-      resendActivation, // helper pour /activation/waiting
+      register,
+      resendActivation,
       me,
+      // utilitaire : true quand on a chargé l’état initial (utile pour ProtectedRoute)
+      isReady: !loading,
+      isAuthenticated: !!user,
     }),
-    [user, loading]
+    [user, loading, login, logout, register, resendActivation, me]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
