@@ -8,6 +8,7 @@ import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import Menu from "./pages/Menu";
+import Checkout from "./pages/Checkout";
 import Contact from "./pages/Contact";
 import ActivationWaiting from "./pages/ActivationWaiting";
 import ActivationCallback from "./pages/ActivationCallback";
@@ -34,6 +35,7 @@ const AppRoutes = () => (
 
     <Route element={<ProtectedRoute />}>
       <Route path="/menu" element={<Menu />} />
+      <Route path="/checkout/:orderId" element={<Checkout />} />
       <Route path="/profile" element={<Profile />} />
     </Route>
 

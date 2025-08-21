@@ -16,7 +16,9 @@
     "react-router-dom": "^7.7.1",
     "react-i18next": "*",
     "i18next": "*",
-    "i18next-browser-languagedetector": "*"
+    "i18next-browser-languagedetector": "*",
+    "@stripe/stripe-js": "*",
+    "@stripe/react-stripe-js": "*"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

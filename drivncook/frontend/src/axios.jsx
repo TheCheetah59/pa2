@@ -16,6 +16,8 @@ function readCookie(name) {
 const API_URL = normalize(import.meta?.env?.VITE_API_URL);
 const api = axios.create({
   baseURL: API_URL,
+  
+  // Ensure Sanctum cookies are sent with every request
   withCredentials: true,
   headers: { "X-Requested-With": "XMLHttpRequest" },
   xsrfCookieName: "XSRF-TOKEN",
