@@ -12,21 +12,24 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    // POST /api/auth/register
+    /**
+     * POST /api/auth/register
+     */
     public function register(Request $request)
     {
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::defaults(), 'confirmed'],
-            'role'     => ['nullable', 'in:client,franchise,admin'],
+            'role'     => ['nullable', 'in:client,franchisee,admin'],
         ]);
 
-        // Cast défensif -> garantit UTF‑8 à l’encodage JSON
+        // Cast défensif (évite les soucis d’encodage)
         $name  = (string) ($data['name'] ?? '');
         $email = (string) ($data['email'] ?? '');
         $role  = (string) ($data['role'] ?? 'client');
 
+        /** @var \App\Models\User $user */
         $user = User::create([
             'name'              => $name,
             'email'             => $email,
@@ -35,21 +38,28 @@ class AuthController extends Controller
             'email_verified_at' => null,
         ]);
 
+        // Déclenche la notification de vérification si User implements MustVerifyEmail
         event(new Registered($user));
 
-        // Réponse minimale (pas d’Eloquent brut), forcer charset UTF‑8
-        return response()->json([
-            'message' => 'Inscription réussie. Vérifie ta boîte mail pour activer ton compte.',
-            'user' => [
-                'id'    => (int) $user->id,
-                'name'  => (string) ($user->name ?? ''),
-                'email' => (string) $user->email,
-                'role'  => (string) ($user->role ?? 'client'),
+        return response()->json(
+            [
+                'message' => 'Inscription réussie. Vérifie ta boîte mail pour activer ton compte.',
+                'user' => [
+                    'id'    => (int) $user->id,
+                    'name'  => (string) ($user->name ?? ''),
+                    'email' => (string) $user->email,
+                    'role'  => (string) ($user->role ?? 'client'),
+                ],
             ],
-        ], 201, ['Content-Type' => 'application/json; charset=utf-8'], JSON_UNESCAPED_UNICODE);
+            201,
+            ['Content-Type' => 'application/json; charset=utf-8'],
+            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+        );
     }
 
-    // POST /api/auth/login -> 204 (aucun JSON, donc aucun risque UTF‑8)
+    /**
+     * POST /api/auth/login  → 204 si ok
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -77,7 +87,9 @@ class AuthController extends Controller
         return response()->noContent(); // 204
     }
 
-    // POST /api/auth/logout -> 204
+    /**
+     * POST /api/auth/logout  → 204
+     */
     public function logout(Request $request)
     {
         Auth::guard('web')->logout();
@@ -87,16 +99,23 @@ class AuthController extends Controller
         return response()->noContent();
     }
 
-    // GET /api/auth/me -> payload minimal, casté
+    /**
+     * GET /api/auth/me
+     */
     public function me(Request $request)
     {
         $u = $request->user();
 
-        return response()->json([
-            'id'    => (int) $u->id,
-            'name'  => (string) ($u->name ?? ''),
-            'email' => (string) $u->email,
-            'role'  => (string) ($u->role ?? 'client'),
-        ], 200, ['Content-Type' => 'application/json; charset=utf-8'], JSON_UNESCAPED_UNICODE);
+        return response()->json(
+            [
+                'id'    => (int) $u->id,
+                'name'  => (string) ($u->name ?? ''),
+                'email' => (string) $u->email,
+                'role'  => (string) ($u->role ?? 'client'),
+            ],
+            200,
+            ['Content-Type' => 'application/json; charset=utf-8'],
+            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+        );
     }
 }
