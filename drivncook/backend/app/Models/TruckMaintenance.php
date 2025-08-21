@@ -11,17 +11,21 @@ class TruckMaintenance extends Model
     use HasFactory;
 
     protected $fillable = [
-        'truck_id', 'date', 'description',
+        'truck_id',
+        'date',
+        'description',
+        'type',   // NEW
+        'notes',  // NEW
+        'cost',   // NEW
     ];
 
     protected $casts = [
-        'date' => 'datetime',
+        'date' => 'date',
+        'cost' => 'float',
     ];
 
-    /** @return BelongsTo<Truck,TruckMaintenance> */
     public function truck(): BelongsTo
     {
         return $this->belongsTo(Truck::class);
     }
-
 }

@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CustomerAuthController; // Guard "customer"
+
 use App\Http\Controllers\EventRegistrationController;
 
 use App\Http\Controllers\FranchiseeController;
@@ -32,6 +34,8 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ContactController;
 
+use App\Http\Controllers\ReportController;
+
 /*
 |--------------------------------------------------------------------------
 | Routes publiques API (sans authentification)
@@ -47,7 +51,7 @@ Route::apiResource('menus',  MenuController::class)->only(['index', 'show']);
 Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
 Route::apiResource('events', EventController::class)->only(['index']);
 
-// Inscription client
+// Inscription client (compte Customer)
 Route::post('/customers', [CustomerController::class, 'store']);
 
 // Formulaire de contact
@@ -55,27 +59,43 @@ Route::post('/contact', [ContactController::class, 'store']);
 
 /*
 |--------------------------------------------------------------------------
-| Auth API
-| NB: /login, /logout, /register, /activate sont dans web.php (session Sanctum)
+| Auth SPA (Sanctum stateful) - Utilisateurs (guard sanctum)
 |--------------------------------------------------------------------------
+| NB: ces endpoints sont consommés par le front React.
 */
 
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);           // publique
+    Route::post('/login',    [AuthController::class, 'login']);              // publique
 
-// Utilisateur admin courant (expose des infos si déjà auth Sanctum)
-Route::get('/auth/admin', [AuthController::class, 'admin'])
-    ->middleware(['auth:sanctum', 'can:admin-only']);
-
-// GET /api/me -> utilisateur connecté via guard "sanctum"
-Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me',      [AuthController::class, 'me']);               // user courant (admin/franchise)
+        Route::get('/admin',   [AuthController::class, 'admin'])->middleware('can:admin-only');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------
-| Routes ADMIN/STAFF (auth:sanctum) -> Modèle User
+| Auth client (guard "customer")
 |--------------------------------------------------------------------------
-|
-| Pour éviter les collisions avec les routes publiques (menus, dishes, events),
-| on met un préfixe /admin aux ressources admin.
-|
+| Endpoints dédiés au compte client (site côté clients).
+*/
+
+Route::prefix('customer')->group(function () {
+    Route::post('/login',  [CustomerAuthController::class, 'login']);        // publique
+
+    Route::middleware('auth:customer')->group(function () {
+        Route::post('/logout', [CustomerAuthController::class, 'logout']);
+        Route::get('/profile', fn (Request $request) => $request->user('customer'));
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Routes ADMIN/STAFF (guard sanctum) -> Modèle User
+|--------------------------------------------------------------------------
+| Préfixe /admin pour éviter toute collision avec les routes publiques.
 */
 
 Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
@@ -93,23 +113,23 @@ Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
         Route::apiResource('trucks', TruckController::class);
         Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
 
-        // Stock
-        Route::apiResource('warehouses',       WarehouseController::class);
-        Route::apiResource('stock-items',      StockItemController::class);
-        Route::apiResource('stock-orders',     StockOrderController::class);
-        Route::apiResource('stock-order-items',StockOrderItemController::class);
+        // Stock (entrepôts, items, commandes)
+        Route::apiResource('warehouses',        WarehouseController::class);
+        Route::apiResource('stock-items',       StockItemController::class);
+        Route::apiResource('stock-orders',      StockOrderController::class);
+        Route::apiResource('stock-order-items', StockOrderItemController::class);
 
         // Ventes
         Route::apiResource('sales', SaleController::class);
         Route::get('/sales/pdf', [SaleController::class, 'generatePdf']);
 
         // Utilisateurs
-        Route::get('/users', [AdminController::class, 'index']);
-        Route::patch('/users/{user}/activate',   [AdminController::class, 'activate']);
-        Route::patch('/users/{user}/suspend',    [AdminController::class, 'suspend']);
-        Route::patch('/users/{user}/make-admin', [AdminController::class, 'makeAdmin']);
+        Route::get('/users',                        [AdminController::class, 'index']);
+        Route::patch('/users/{user}/activate',      [AdminController::class, 'activate']);
+        Route::patch('/users/{user}/suspend',       [AdminController::class, 'suspend']);
+        Route::patch('/users/{user}/make-admin',    [AdminController::class, 'makeAdmin']);
 
-        // Menus / Plats (admin) — pas de collision avec public grâce au prefix /admin
+        // Menus / Plats (admin)
         Route::apiResource('menus',  MenuController::class)->except(['index', 'show']);
         Route::apiResource('dishes', DishController::class)->except(['index', 'show']);
 
@@ -130,34 +150,35 @@ Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
 
         // Clients (admin)
         Route::apiResource('customers', CustomerController::class)->only(['index']);
+
+        // Rapports PDF (admin)
+        Route::get('/reports/franchisees.pdf',        [ReportController::class, 'franchiseesPdf']);
+        Route::get('/reports/franchisees/{id}.pdf',   [ReportController::class, 'franchiseePdf']);
     });
 
 /*
 |--------------------------------------------------------------------------
-| Routes CLIENT (auth:customer) -> Modèle Customer
+| Routes CLIENT (guard "customer") -> Modèle Customer
 |--------------------------------------------------------------------------
+| Espace client authentifié (hors admin).
 */
 
 Route::middleware(['auth:customer'])->group(function () {
 
-    // GET /api/customer/profile -> profil client via guard "customer"
-    Route::get('/customer/profile', fn (Request $request) => $request->user('customer'));
-
-
-    // Compte client
+    // Compte client (CRUD limité sur soi)
     Route::apiResource('customers', CustomerController::class)->only(['show', 'update', 'destroy']);
 
     // Commandes du client
     Route::apiResource('customer-orders', CustomerOrderController::class)->only(['index', 'store', 'show']);
 
     // Carte de fidélité du client
-    Route::get('/my-loyalty-card',  [LoyaltyCardController::class, 'show']);
-    Route::put('/my-loyalty-card',  [LoyaltyCardController::class, 'update']);
+    Route::get('/my-loyalty-card', [LoyaltyCardController::class, 'show']);
+    Route::put('/my-loyalty-card', [LoyaltyCardController::class, 'update']);
 
     // Événements du client
     Route::get('/my-events', [EventRegistrationController::class, 'myEvents']);
-    Route::post('/events/{event}/register',    [EventRegistrationController::class, 'register']);
-    Route::delete('/events/{event}/unregister',[EventRegistrationController::class, 'unregister']);
+    Route::post('/events/{event}/register',     [EventRegistrationController::class, 'register']);
+    Route::delete('/events/{event}/unregister', [EventRegistrationController::class, 'unregister']);
 
     // Feedback client
     Route::apiResource('feedback', CustomerFeedbackController::class)->only(['store']);

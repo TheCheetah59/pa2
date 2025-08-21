@@ -3,17 +3,21 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
-const Register = () => {
+export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
+    role: "franchise", // ✅ valeur par défaut pour éviter l'input "non contrôlé"
     password: "",
     password_confirmation: "",
   });
-    const [errors, setErrors] = useState({});
-    const [generalError, setGeneralError] = useState("");
+
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState(null); // { type: 'success'|'error', text: string }
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,21 +25,47 @@ const Register = () => {
   const submit = async (e) => {
     e.preventDefault();
     setErrors({});
-    setGeneralError("");
+    setMessage(null);
+    setSubmitting(true);
+
     try {
-      await register(form);
-      navigate("/profile");
+      await register(form); // doit throw si 4xx/5xx
+      setMessage({
+        type: "success",
+        text: "Compte créé ! Vérifiez vos emails pour activer votre compte.",
+      });
+      // Si l'activation par email est en place, on redirige plutôt vers /login
+      setTimeout(() => navigate("/login", { replace: true }), 1200);
     } catch (err) {
-      if (err.response?.status === 422) {
+      if (err?.response?.status === 422) {
         setErrors(err.response.data.errors || {});
       } else {
-          setGeneralError(err.message);
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Une erreur est survenue. Merci de réessayer.";
+        setMessage({ type: "error", text: msg });
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={submit} className="auth-form">
+    <form onSubmit={submit} className="auth-form" noValidate>
+      {message && (
+        <div
+          className={`auth-message ${
+            message.type === "error" ? "auth-error" : "auth-success"
+          }`}
+          role="status"
+          aria-live="polite"
+          style={{ marginBottom: 12 }}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className="auth-field">
         <label htmlFor="register-name">Nom</label>
         <input
@@ -57,6 +87,7 @@ const Register = () => {
           </div>
         )}
       </div>
+
       <div className="auth-field">
         <label htmlFor="register-email">Email</label>
         <input
@@ -81,6 +112,7 @@ const Register = () => {
           </div>
         )}
       </div>
+
       <div className="auth-field">
         <label htmlFor="register-role">Rôle</label>
         <select
@@ -102,6 +134,7 @@ const Register = () => {
           </div>
         )}
       </div>
+
       <div className="auth-field">
         <label htmlFor="register-password">Mot de passe</label>
         <input
@@ -126,6 +159,7 @@ const Register = () => {
           </div>
         )}
       </div>
+
       <div className="auth-field">
         <label htmlFor="register-password-confirmation">
           Confirmez le mot de passe
@@ -153,19 +187,13 @@ const Register = () => {
         )}
       </div>
 
-      <button type="submit" className="auth-btn">
-        S'inscrire
+      <button type="submit" className="auth-btn" disabled={submitting}>
+        {submitting ? "Création..." : "S'inscrire"}
       </button>
+
       <p className="auth-message">
         <Link to="/login">Déjà inscrit ?</Link>
       </p>
-      {flash && (
-        <div aria-live="polite">
-          <p className="auth-message auth-error">{flash}</p>
-        </div>
-      )}
     </form>
   );
-};
-
-export default Register;
+}
