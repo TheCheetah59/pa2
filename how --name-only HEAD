@@ -1,0 +1,14 @@
+[33mcommit 820e099087b6ea81d502cd9d2f403d34ebe08977[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: WilfriedMrc923 <ngouffowilfried237@gmail.com>
+Date:   Thu Aug 21 18:38:11 2025 +0200
+
+    modif
+
+drivncook/backend/.env.example
+drivncook/backend/app/Http/Controllers/Api/AuthController.php
+drivncook/backend/routes/api.php
+drivncook/backend/routes/web.php
+drivncook/frontend/.env
+drivncook/frontend/package-lock.json
+drivncook/frontend/package.json
+drivncook/frontend/src/pages/Checkout.jsx
