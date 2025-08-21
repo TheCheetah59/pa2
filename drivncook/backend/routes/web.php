@@ -6,8 +6,9 @@ use App\Models\Franchisee;
 
 // --- Sanctum + Auth (session-based) ---
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ActivationController;
 use App\Http\Controllers\Api\CustomerAuthController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\CustomerAuthController;
 | - CSRF cookie Sanctum
 | - Auth /login /logout /register sous session
 | - PDF
+| - Vérification d’email
 | - Catch-all SPA en dernier
 |--------------------------------------------------------------------------
 */
@@ -26,8 +28,20 @@ Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookie
 Route::post('/login',  [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
-// 3) Activation de compte
-Route::get('/activate/{token}', [ActivationController::class, 'index']);
+// 3) Vérification d'email Laravel (MustVerifyEmail)
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill(); // marque l’email comme vérifié
+    $front = env('APP_FRONT_URL', 'http://localhost:5173');
+    return redirect($front.'/activation/callback?status=verified');
+})->middleware(['signed','throttle:6,1'])->name('verification.verify');
+
+// (Optionnel) Renvoyer l’email de vérification (user connecté)
+Route::post('/email/verification-notification', function (Request $request) {
+    if ($request->user() && ! $request->user()->hasVerifiedEmail()) {
+        $request->user()->sendEmailVerificationNotification();
+    }
+    return response()->json(['message' => 'Lien de vérification renvoyé si nécessaire.']);
+})->middleware(['auth','throttle:6,1'])->name('verification.send');
 
 // 4) PDF franchisés
 Route::get('/franchisees/report/{id?}', function ($id = null) {
@@ -50,11 +64,12 @@ Route::get('/franchisee/code/{code}/report', function ($code) {
     return $pdf->stream("rapport-{$code}.pdf");
 });
 
+// 5) Auth clients
 Route::post('/customer/login',  [CustomerAuthController::class, 'login']);
 Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:customer');
 Route::post('/register',        [CustomerAuthController::class, 'register']);
 
-// 5) Catch‑all pour la SPA (doit rester le DERNIER)
+// 6) Catch-all pour la SPA (doit rester le DERNIER)
 Route::get('{any}', function () {
     return response()->file(public_path('index.html')); // sert le bon Content-Type
 })->where('any', '.*');

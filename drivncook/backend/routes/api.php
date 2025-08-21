@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerAuthController; // Guard "customer"
@@ -60,14 +62,40 @@ Route::post('/contact', [ContactController::class, 'store']);
 /*
 |--------------------------------------------------------------------------
 | Auth SPA (Sanctum stateful) - Utilisateurs (guard sanctum)
-|--------------------------------------------------------------------------
 | NB: ces endpoints sont consommés par le front React.
+|--------------------------------------------------------------------------
 */
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);           // publique
-    Route::post('/login',    [AuthController::class, 'login']);              // publique
+    // publiques
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login',    [AuthController::class, 'login']);
 
+    // Renvoyer l’e-mail de vérification (pas besoin d’être connecté)
+    Route::post('/email/resend', function (Request $r) {
+        $r->validate([
+            'email' => ['required', 'email', 'exists:users,email'],
+        ]);
+
+        // Throttle : 3 tentatives par 60s (IP + email)
+        $key = 'resend:'.sha1($r->ip().$r->input('email'));
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            throw new ThrottleRequestsException('Trop de tentatives. Réessayez plus tard.');
+        }
+        RateLimiter::hit($key, 60);
+
+        $user = \App\Models\User::whereEmail($r->input('email'))->first();
+
+        if ($user && !$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return response()->json([
+            'message' => 'Si un compte existe, un email de vérification a été renvoyé.'
+        ]);
+    })->middleware('guest');
+
+    // protégées
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me',      [AuthController::class, 'me']);               // user courant (admin/franchise)
@@ -78,8 +106,8 @@ Route::prefix('auth')->group(function () {
 /*
 |--------------------------------------------------------------------------
 | Auth client (guard "customer")
-|--------------------------------------------------------------------------
 | Endpoints dédiés au compte client (site côté clients).
+|--------------------------------------------------------------------------
 */
 
 Route::prefix('customer')->group(function () {
@@ -94,8 +122,8 @@ Route::prefix('customer')->group(function () {
 /*
 |--------------------------------------------------------------------------
 | Routes ADMIN/STAFF (guard sanctum) -> Modèle User
-|--------------------------------------------------------------------------
 | Préfixe /admin pour éviter toute collision avec les routes publiques.
+|--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
@@ -159,8 +187,8 @@ Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
 /*
 |--------------------------------------------------------------------------
 | Routes CLIENT (guard "customer") -> Modèle Customer
-|--------------------------------------------------------------------------
 | Espace client authentifié (hors admin).
+|--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth:customer'])->group(function () {
