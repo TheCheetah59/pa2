@@ -35,6 +35,7 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PaymentController;
 
 use App\Http\Controllers\ReportController;
 
@@ -118,6 +119,12 @@ Route::prefix('customer')->group(function () {
         Route::get('/profile', fn (Request $request) => $request->user('customer'));
     });
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/orders/{order}/payment-intent', [PaymentController::class, 'paymentIntent']);
+    Route::post('/orders/{order}/confirm-payment', [PaymentController::class, 'confirmPayment']);
+});
+
 
 /*
 |--------------------------------------------------------------------------

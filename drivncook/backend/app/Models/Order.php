@@ -11,9 +11,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     use HasFactory;
+    public const PAYMENT_UNPAID = 'unpaid';
+    public const PAYMENT_PROCESSING = 'processing';
+    public const PAYMENT_PAID = 'paid';
+    public const PAYMENT_FAILED = 'failed';
 
     protected $fillable = [
         'customer_id', 'total_price', 'status',
+        'payment_status', 'payment_intent_id',
     ];
 
     protected $casts = [

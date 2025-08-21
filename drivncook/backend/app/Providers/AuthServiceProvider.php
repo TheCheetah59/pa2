@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use App\Models\Order;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -24,5 +25,6 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         Gate::define('admin-only', fn($user) => $user->role === 'admin');
+        Gate::define('pay-order', fn($user, Order $order) => $user->role === 'admin' || $user->id === $order->customer_id);
     }
 }
