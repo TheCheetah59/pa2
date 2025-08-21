@@ -24,4 +24,6 @@ return [
 
     // Nécessaire pour envoyer/recevoir les cookies
     'supports_credentials' => true,
+
+    // Autoriser les cookies pour le front local
 ];

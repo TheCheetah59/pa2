@@ -53,26 +53,23 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
-
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            return response()->json(['message' => 'Identifiants invalides'], 401);
-        }
-
-        if (!$user->is_activated) {
-            return response()->json(['message' => 'Compte non activé'], 403);
-        }
-
-        // Authentification par session
         if (!Auth::attempt($credentials, true)) {
-            return response()->json(['message' => 'Échec de connexion'], 401);
+            return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+
+
+
+        if (!$user->is_activated) {
+            Auth::logout();
+            return response()->json(['message' => 'Compte non activé'], 403);
+        }
+
         return response()->json([
-            'user'  => $user->only(['id','name','email','role','is_activated']),
-            'message' => 'Connecté',
+            'user' => $user->only(['id','name','email','role','is_activated']),
         ]);
     }
 

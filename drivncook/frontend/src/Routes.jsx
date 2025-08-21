@@ -2,15 +2,15 @@ import { Routes, Route } from "react-router-dom";
 import Accueil from "./pages/Accueil";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import Menu from "./pages/Menu";
 import Contact from "./pages/Contact";
 import ActivationWaiting from "./pages/ActivationWaiting";
 import ActivationCallback from "./pages/ActivationCallback";
-import DashboardClient from "./pages/DashboardClient";
-import DashboardFranchise from "./pages/DashboardFranchise";
-import DashboardAdmin from "./pages/DashboardAdmin";
+
 
 const AppRoutes = () => (
   <Routes>
@@ -22,15 +22,10 @@ const AppRoutes = () => (
     <Route element={<ProtectedRoute />}>
       <Route path="/menu" element={<Menu />} />
       <Route path="/contact" element={<Contact />} />
-    </Route>
-    <Route element={<ProtectedRoute roles={["client"]} />}>
-      <Route path="/dashboard" element={<DashboardClient />} />
-    </Route>
-    <Route element={<ProtectedRoute roles={["franchise"]} />}>
-      <Route path="/dashboard-franchise" element={<DashboardFranchise />} />
+      <Route path="/profile" element={<Profile />} />
     </Route>
     <Route element={<ProtectedRoute roles={["admin"]} />}>
-      <Route path="/dashboard-admin" element={<DashboardAdmin />} />
+      <Route path="/admin" element={<Admin />} />
     </Route>
     <Route path="*" element={<NotFound />} />
   </Routes>

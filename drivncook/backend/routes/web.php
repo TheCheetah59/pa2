@@ -23,9 +23,8 @@ use App\Http\Controllers\Api\CustomerAuthController;
 Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookieController::class, 'show']);
 
 // 2) Auth admin/staff via session Sanctum
-Route::post('/login',    [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']); // si utilisé
-Route::post('/logout',   [AuthController::class, 'logout'])->middleware('auth');
+Route::post('/login',  [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
 // 3) Activation de compte
 Route::get('/activate/{token}', [ActivationController::class, 'index']);
@@ -51,8 +50,9 @@ Route::get('/franchisee/code/{code}/report', function ($code) {
     return $pdf->stream("rapport-{$code}.pdf");
 });
 
-Route::post('/customer/login', [CustomerAuthController::class, 'login']);
+Route::post('/customer/login',  [CustomerAuthController::class, 'login']);
 Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:customer');
+Route::post('/register',        [CustomerAuthController::class, 'register']);
 
 // 5) Catch‑all pour la SPA (doit rester le DERNIER)
 Route::get('{any}', function () {

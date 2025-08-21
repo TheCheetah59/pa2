@@ -12,6 +12,32 @@ use App\Models\Customer;
 class CustomerAuthController extends Controller
 {
     /**
+     * Inscription CLIENT avec login immédiat (session)
+     */
+    public function register(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:customers,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $customer = Customer::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        Auth::guard('customer')->login($customer);
+        $request->session()->regenerate();
+
+        return response()->json([
+            'customer' => $customer->only(['id','name','email']),
+        ], 201);
+    }
+
+
+    /**
      * Connexion CLIENT via session (Sanctum + cookies)
      */
     public function login(Request $request): JsonResponse
@@ -21,22 +47,16 @@ class CustomerAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $customer = Customer::where('email', $credentials['email'])->first();
-
-        if (!$customer || !Hash::check($credentials['password'], $customer->password)) {
-            return response()->json(['message' => 'Identifiants invalides'], 401);
-        }
-
-        // Auth par le guard "customer" (session)
         if (!Auth::guard('customer')->attempt($credentials, true)) {
-            return response()->json(['message' => 'Échec de connexion'], 401);
+            return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
         $request->session()->regenerate();
 
+        $customer = Auth::guard('customer')->user();
+
         return response()->json([
             'customer' => $customer->only(['id','name','email']),
-            'message'  => 'Connecté',
         ]);
     }
 

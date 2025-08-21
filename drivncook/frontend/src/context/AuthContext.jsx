@@ -49,41 +49,52 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // --- Connexion (Sanctum session/cookies) ---
-  const login = async (credentials) => {
+  // --- Connexion (admin ou client) ---
+  const login = async (credentials, isCustomer = false) => {
     await api.get("/sanctum/csrf-cookie");
     let data;
     try {
-      ({ data } = await api.post("/login", credentials));
+      ({ data } = await api.post(
+        isCustomer ? "/customer/login" : "/login",
+        credentials
+      ));
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Login failed");
+      throw new Error(error.response?.data?.message || "Échec de connexion");
     }
-    const currentUser = data.user ?? data;
+    const current = data.user ?? data.customer ?? data;
 
-    if (!currentUser?.is_activated) {
-      await api.post("/logout");
-      throw new Error("Compte non activé");
-    }
-
-    setUser(currentUser);
-    localStorage.setItem("user", JSON.stringify(currentUser));
-    return currentUser;
+    setUser(current);
+    localStorage.setItem("user", JSON.stringify(current));
+    return current;
   };
 
   // --- Déconnexion ---
   const logout = async () => {
     try {
-      await api.post("/logout");
+      if (user?.role === "admin") {
+        await api.post("/logout");
+      } else {
+        await api.post("/customer/logout");
+      }
     } finally {
       setUser(null);
       localStorage.removeItem("user");
     }
   };
 
-  // --- Inscription (pas d’auto-login si activation mail requise) ---
+  // --- Inscription client (auto-login) ---
   const register = async (payload) => {
     await api.get("/sanctum/csrf-cookie");
-    return api.post("/register", payload);
+    let data;
+    try {
+      ({ data } = await api.post("/register", payload));
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Échec d'inscription");
+    }
+    const current = data.customer ?? data;
+    setUser(current);
+    localStorage.setItem("user", JSON.stringify(current));
+    return current;
   };
 
   const value = useMemo(

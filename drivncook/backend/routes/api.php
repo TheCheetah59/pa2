@@ -65,7 +65,7 @@ Route::post('/contact', [ContactController::class, 'store']);
 Route::get('/auth/admin', [AuthController::class, 'admin'])
     ->middleware(['auth:sanctum', 'can:admin-only']);
 
-// Utilisateur courant (après login via cookies Sanctum)
+// GET /api/me -> utilisateur connecté via guard "sanctum"
 Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
 
 /*
@@ -140,7 +140,7 @@ Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
 
 Route::middleware(['auth:customer'])->group(function () {
 
-    // Profil client
+    // GET /api/customer/profile -> profil client via guard "customer"
     Route::get('/customer/profile', fn (Request $request) => $request->user('customer'));
 
 

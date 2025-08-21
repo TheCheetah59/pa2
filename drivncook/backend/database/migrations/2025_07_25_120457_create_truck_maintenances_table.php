@@ -6,25 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-    Schema::create('truck_maintenances', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('truck_id')->constrained()->onDelete('cascade');
-        $table->date('date');
-        $table->text('description');
-        $table->timestamps();
-});
+        Schema::table('truck_maintenances', function (Blueprint $table) {
+            // Ajouts requis par le cahier des charges
+            $table->string('type')->default('revision')->after('description'); // revision|panne|reparation|autre
+            $table->text('notes')->nullable()->after('type');
+            $table->decimal('cost', 10, 2)->default(0)->after('notes');
+
+            // Optionnel : index sur type si tu filtres souvent dessus
+            $table->index('type');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('truck_maintenances');
+        Schema::table('truck_maintenances', function (Blueprint $table) {
+            $table->dropIndex(['type']);
+            $table->dropColumn(['type', 'notes', 'cost']);
+        });
     }
 };

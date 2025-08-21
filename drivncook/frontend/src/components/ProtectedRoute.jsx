@@ -3,18 +3,25 @@ import { useAuth } from "../context/AuthContext.jsx";
 
 
 const ProtectedRoute = ({ roles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!user.is_activated) {
+  if (
+    Object.prototype.hasOwnProperty.call(user, "is_activated") &&
+    !user.is_activated
+  ) {
     return <Navigate to="/waiting" replace />;
   }
 
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+  if (roles && (!user.role || !roles.includes(user.role))) {
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

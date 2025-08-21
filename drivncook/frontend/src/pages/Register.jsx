@@ -1,20 +1,19 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Register = () => {
-  const { signUp } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     password_confirmation: "",
-    role: "client",
   });
-  const [errors, setErrors] = useState({});
-  const [flash, setFlash] = useState("");
+    const [errors, setErrors] = useState({});
+    const [generalError, setGeneralError] = useState("");
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,19 +21,15 @@ const Register = () => {
   const submit = async (e) => {
     e.preventDefault();
     setErrors({});
-    setFlash("");
+    setGeneralError("");
     try {
-      await signUp(form);
-      navigate("/login", {
-        state: {
-          flash: "Compte créé. Vérifiez votre e-mail pour l’activation.",
-        },
-      });
+      await register(form);
+      navigate("/profile");
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
       } else {
-        setFlash(err.response?.data?.message);
+          setGeneralError(err.message);
       }
     }
   };

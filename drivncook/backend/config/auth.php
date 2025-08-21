@@ -38,20 +38,20 @@ return [
     'guards' => [
         // Admin / staff (session + cookies)
         'web' => [
-        'driver' => 'session',
-        'provider' => 'users',
+            'driver' => 'session',
+            'provider' => 'users',
         ],
 
-    'api' => [
-        'driver' => 'sanctum',
-        'provider' => 'users',
-    ],
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
 
-    // Clients **en session/cookies** (comme les admins)
-    'customer' => [
-        'driver' => 'session',   
-        'provider' => 'customers',
-    ],
+        // Clients en session/cookies (guard "customer")
+        'customer' => [
+            'driver' => 'session',
+            'provider' => 'customers',
+        ],
     ],
 
     /*

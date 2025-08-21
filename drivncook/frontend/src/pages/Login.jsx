@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./styles/Auth.css";
 
 const Login = () => {
-  const { signIn } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState("");
   const [generalError, setGeneralError] = useState("");
+  const [mode, setMode] = useState("customer"); // "customer" ou "admin"
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,29 +18,16 @@ const Login = () => {
     e.preventDefault();
     setErrors({});
     setGeneralError("");
-    setSuccess("");
     try {
-      const { message, user } = await signIn(form);
-      setSuccess(message);
-      if (!user.is_activated) {
-        navigate("/waiting");
+      const current = await login(form, mode === "customer");
+      if (current.role === "admin") {
+        navigate("/admin");
       } else {
-        switch (user.role) {
-          case "franchise":
-            navigate("/dashboard-franchise");
-            break;
-          case "admin":
-            navigate("/dashboard-admin");
-            break;
-          default:
-            navigate("/dashboard");
-        }
       }
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors || {});
       } else {
-        setGeneralError(err.response?.data?.message || "Une erreur est survenue");
       }
     }
   };
@@ -102,11 +89,6 @@ const Login = () => {
       {generalError && (
         <div aria-live="polite">
           <p className="auth-message auth-error">{generalError}</p>
-        </div>
-      )}
-      {success && (
-        <div aria-live="polite">
-          <p className="auth-message auth-success">{success}</p>
         </div>
       )}
     </form>
