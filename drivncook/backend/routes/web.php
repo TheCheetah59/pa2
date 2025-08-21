@@ -32,14 +32,17 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     try {
         $request->fulfill(); // marque l'email comme vérifié
-        $front = env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173'));
+        $front = trim(env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173')));
+        $front = rtrim($front, "/");
+
         
         // Redirection simple sans urlencode pour éviter les problèmes de headers
-        return redirect($front . '/activation/callback?status=verified');
+        return redirect()->to($front.'/activation/callback?status=verified');
         
     } catch (\Exception $e) {
-        $front = env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173'));
-        return redirect($front . '/activation/callback?status=error');
+        $front = trim(env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173')));
+        $front = rtrim($front, "/");
+        return redirect()->to($front.'/activation/callback?status=error');
     }
 })->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 

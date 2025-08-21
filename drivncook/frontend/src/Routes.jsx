@@ -12,6 +12,7 @@ import Checkout from "./pages/Checkout";
 import Contact from "./pages/Contact";
 import ActivationWaiting from "./pages/ActivationWaiting";
 import ActivationCallback from "./pages/ActivationCallback";
+import ActivationVerify from "./pages/ActivationVerify";
 
 const AppRoutes = () => (
   <Routes>
@@ -22,6 +23,7 @@ const AppRoutes = () => (
     {/* Nouvelles routes d’activation */}
     <Route path="/activation/waiting" element={<ActivationWaiting />} />
     <Route path="/activation/callback" element={<ActivationCallback />} />
+    <Route path="/email/verify/:id/:hash" element={<ActivationVerify />} />
 
     {/* Compat : redirige l’ancienne mécanique */}
     <Route
