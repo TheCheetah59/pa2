@@ -1,10 +1,11 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
-import api from "../axios";  
+import api from "../axios"; // axios.create({ baseURL: VITE_API_URL, withCredentials: true })
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  // Cache local facultatif (utile pour éviter un flash au reload)
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
@@ -14,103 +15,157 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Restauration de session
+  // ---- helpers --------------------------------------------------------------
+  const saveUser = (u) => {
+    setUser(u);
+    if (u) localStorage.setItem("user", JSON.stringify(u));
+    else localStorage.removeItem("user");
+  };
+
+  const me = async () => {
+    const { data } = await api.get("/api/auth/me");
+    saveUser(data);
+    return data;
+  };
+
+  // ---- restauration de session au démarrage --------------------------------
   useEffect(() => {
     let alive = true;
 
-    if (["/login", "/register"].includes(window.location.pathname)) {
+    const path = window.location.pathname;
+    // On évite l'appel initial /me sur les pages /login & /register
+    if (path === "/login" || path === "/register") {
       setLoading(false);
       return () => {
         alive = false;
       };
     }
 
-    api
-      .get("/api/auth/me") // ✅ API (pas /api/me ni /me)
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const data = await me();
         if (!alive) return;
-        setUser(data);
-        localStorage.setItem("user", JSON.stringify(data));
-      })
-      .catch((err) => {
-        if (err?.response?.status !== 401) {
-          console.error("Init /api/auth/me échoué:", err);
-        }
-        if (alive) {
-          setUser(null);
-          localStorage.removeItem("user");
-        }
-      })
-      .finally(() => alive && setLoading(false));
+        saveUser(data);
+      } catch (err) {
+        // 401 attendu si pas connecté
+        if (alive) saveUser(null);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
 
     return () => {
       alive = false;
     };
   }, []);
 
-  // --- Connexion (admin/franchise côté API "auth", client côté API "customer") ---
-  const login = async (credentials, isCustomer = false) => {
-    // 1) cookie CSRF (hors /api)
-    await api.get("/sanctum/csrf-cookie");
+  // ---- Auth -----------------------------------------------------------------
 
-    // 2) endpoint API correct
+  /**
+   * Login (Sanctum cookie)
+   * @param {{email:string,password:string}} credentials
+   * @param {boolean} isCustomer si tu as vraiment 2 endpoints (client/admin)
+   * @returns {Promise<object>} user courant
+   * NOTE: on RELAIE l'erreur axios telle quelle (ne pas wrapper) -> status utilisable dans Login.jsx
+   */
+  const login = async (credentials, isCustomer = false) => {
+    // Si tu utilises le flow Sanctum SPA, le csrf-cookie peut être utile
+    try {
+      // facultatif selon ta config, mais safe :
+      await api.get("/sanctum/csrf-cookie");
+    } catch {
+      // ignore
+    }
+
+    // Si tu n'as QU'UN seul endpoint, garde "/api/auth/login" pour tout le monde
     const url = isCustomer ? "/api/customer/login" : "/api/auth/login";
 
     try {
-      const { data } = await api.post(url, credentials, {
+      await api.post(url, credentials, {
         headers: { Accept: "application/json" },
-        withCredentials: true,
       });
-
-      const current = data.user ?? data.customer ?? data;
-      setUser(current);
-      localStorage.setItem("user", JSON.stringify(current));
+      // après succès: récupère l'utilisateur courant via /me
+      const current = await me();
       return current;
-    } catch (error) {
-      throw new Error(error?.response?.data?.message || "Échec de connexion");
+    } catch (err) {
+      // très important: NE PAS créer un nouvel Error() → on perd status & payload
+      throw err;
     }
   };
 
-  // --- Déconnexion ---
+  /**
+   * Logout
+   */
   const logout = async () => {
     try {
-      // client -> /api/customer/logout, sinon -> /api/auth/logout
       const isClient = user?.role === "client" || user?.role === "customer";
       const url = isClient ? "/api/customer/logout" : "/api/auth/logout";
-      await api.post(url, {}, { withCredentials: true });
+      await api.post(url, {});
     } finally {
-      setUser(null);
-      localStorage.removeItem("user");
+      saveUser(null);
     }
   };
 
-  // --- Inscription (Mission 1 : rôle "franchise" par défaut côté backend) ---
+  /**
+   * Register — ne connecte PAS l'utilisateur
+   * @param {{name?:string,email:string,password:string,password_confirmation:string}} payload
+   * @returns {Promise<{message:string}>}
+   */
   const register = async (payload) => {
-    await api.get("/sanctum/csrf-cookie"); // ✅ hors /api
-
     try {
+      // (facultatif) CSRF si back attend une session
+      try {
+        await api.get("/sanctum/csrf-cookie");
+      } catch {}
+
       const { data } = await api.post("/api/auth/register", payload, {
-        headers: { Accept: "application/json" },
-        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
       });
 
-      // Si ton backend exige l'activation par email, NE PAS connecter ici :
-      // return data;
-      // Sinon, si l'API renvoie l'utilisateur et que tu veux auto-login :
-      const current = data.user ?? data.customer ?? data;
-      if (current) {
-        setUser(current);
-        localStorage.setItem("user", JSON.stringify(current));
-      }
-      return current ?? data;
-    } catch (error) {
-      // Laisse le composant gérer les 422 (errors: {...})
-      throw error;
+      // ❗️Pas d’auto-login ici
+      // On retourne simplement le message du backend
+      return {
+        message:
+          data?.message ??
+          "Inscription réussie. Vérifie ta boîte mail pour activer ton compte.",
+      };
+    } catch (err) {
+      // Laisse le composant gérer err.response.status === 422 etc.
+      throw err;
+    }
+  };
+
+  /**
+   * Renvoyer l'email d'activation (ouvert, rate‑limité)
+   * @param {string} email
+   * @returns {Promise<{message:string}>}
+   */
+  const resendActivation = async (email) => {
+    try {
+      const { data } = await api.post("/api/auth/email/resend", { email });
+      return {
+        message:
+          data?.message ??
+          "Si un compte existe et n'est pas vérifié, un email a été renvoyé.",
+      };
+    } catch (err) {
+      throw err;
     }
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, logout, register }),
+    () => ({
+      user,
+      loading,
+      login,
+      logout,
+      register, // retourne seulement un message
+      resendActivation, // helper pour /activation/waiting
+      me,
+    }),
     [user, loading]
   );
 

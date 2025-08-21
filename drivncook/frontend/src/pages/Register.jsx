@@ -1,3 +1,4 @@
+// src/pages/Register.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -10,7 +11,7 @@ export default function Register() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    role: "franchise", // ✅ valeur par défaut pour éviter l'input "non contrôlé"
+    role: "franchise", // OK si ton backend l'accepte, sinon supprime ce champ
     password: "",
     password_confirmation: "",
   });
@@ -20,7 +21,7 @@ export default function Register() {
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const submit = async (e) => {
     e.preventDefault();
@@ -29,16 +30,36 @@ export default function Register() {
     setSubmitting(true);
 
     try {
-      await register(form); // doit throw si 4xx/5xx
+      const { message } = await register(form); // ne connecte PAS l’utilisateur
+      // 1) Affiche le message succès
       setMessage({
         type: "success",
-        text: "Compte créé ! Vérifiez vos emails pour activer votre compte.",
+        text:
+          message ||
+          "Compte créé ! Vérifie tes emails pour activer ton compte.",
       });
-      // Si l'activation par email est en place, on redirige plutôt vers /login
-      setTimeout(() => navigate("/login", { replace: true }), 1200);
+      // 2) Redirige vers la page d’attente avec l’email prérempli
+      setTimeout(
+        () =>
+          navigate("/activation/waiting", {
+            state: { email: form.email },
+            replace: true,
+          }),
+        800
+      );
     } catch (err) {
       if (err?.response?.status === 422) {
-        setErrors(err.response.data.errors || {});
+        setErrors(err.response.data?.errors || {});
+      } else if (err?.response?.status === 429) {
+        setMessage({
+          type: "error",
+          text: "Trop de tentatives. Réessaie dans quelques instants.",
+        });
+      } else if (err?.code === "ERR_NETWORK") {
+        setMessage({
+          type: "error",
+          text: "Serveur injoignable. Vérifie l’URL API/connexion.",
+        });
       } else {
         const msg =
           err?.response?.data?.message ||
@@ -70,21 +91,20 @@ export default function Register() {
         <label htmlFor="register-name">Nom</label>
         <input
           id="register-name"
-          className="auth-input"
+          className={`auth-input ${errors.name ? "auth-input-error" : ""}`}
           type="text"
           name="name"
           value={form.name}
           onChange={handleChange}
           required
           autoComplete="name"
-          aria-describedby="register-name-error"
+          aria-describedby={errors.name ? "register-name-error" : undefined}
+          disabled={submitting}
         />
         {errors.name && (
-          <div aria-live="polite">
-            <small id="register-name-error" className="auth-message auth-error">
-              {errors.name[0]}
-            </small>
-          </div>
+          <small id="register-name-error" className="auth-message auth-error">
+            {errors.name[0]}
+          </small>
         )}
       </div>
 
@@ -92,24 +112,20 @@ export default function Register() {
         <label htmlFor="register-email">Email</label>
         <input
           id="register-email"
-          className="auth-input"
+          className={`auth-input ${errors.email ? "auth-input-error" : ""}`}
           type="email"
           name="email"
           value={form.email}
           onChange={handleChange}
           required
           autoComplete="email"
-          aria-describedby="register-email-error"
+          aria-describedby={errors.email ? "register-email-error" : undefined}
+          disabled={submitting}
         />
         {errors.email && (
-          <div aria-live="polite">
-            <small
-              id="register-email-error"
-              className="auth-message auth-error"
-            >
-              {errors.email[0]}
-            </small>
-          </div>
+          <small id="register-email-error" className="auth-message auth-error">
+            {errors.email[0]}
+          </small>
         )}
       </div>
 
@@ -117,21 +133,20 @@ export default function Register() {
         <label htmlFor="register-role">Rôle</label>
         <select
           id="register-role"
-          className="auth-input"
+          className={`auth-input ${errors.role ? "auth-input-error" : ""}`}
           name="role"
           value={form.role}
           onChange={handleChange}
-          aria-describedby="register-role-error"
+          aria-describedby={errors.role ? "register-role-error" : undefined}
+          disabled={submitting}
         >
           <option value="client">client</option>
           <option value="franchise">franchise</option>
         </select>
         {errors.role && (
-          <div aria-live="polite">
-            <small id="register-role-error" className="auth-message auth-error">
-              {errors.role[0]}
-            </small>
-          </div>
+          <small id="register-role-error" className="auth-message auth-error">
+            {errors.role[0]}
+          </small>
         )}
       </div>
 
@@ -139,24 +154,25 @@ export default function Register() {
         <label htmlFor="register-password">Mot de passe</label>
         <input
           id="register-password"
-          className="auth-input"
+          className={`auth-input ${errors.password ? "auth-input-error" : ""}`}
           type="password"
           name="password"
           value={form.password}
           onChange={handleChange}
           required
           autoComplete="new-password"
-          aria-describedby="register-password-error"
+          aria-describedby={
+            errors.password ? "register-password-error" : undefined
+          }
+          disabled={submitting}
         />
         {errors.password && (
-          <div aria-live="polite">
-            <small
-              id="register-password-error"
-              className="auth-message auth-error"
-            >
-              {errors.password[0]}
-            </small>
-          </div>
+          <small
+            id="register-password-error"
+            className="auth-message auth-error"
+          >
+            {errors.password[0]}
+          </small>
         )}
       </div>
 
@@ -166,24 +182,29 @@ export default function Register() {
         </label>
         <input
           id="register-password-confirmation"
-          className="auth-input"
+          className={`auth-input ${
+            errors.password_confirmation ? "auth-input-error" : ""
+          }`}
           type="password"
           name="password_confirmation"
           value={form.password_confirmation}
           onChange={handleChange}
           required
           autoComplete="new-password"
-          aria-describedby="register-password-confirmation-error"
+          aria-describedby={
+            errors.password_confirmation
+              ? "register-password-confirmation-error"
+              : undefined
+          }
+          disabled={submitting}
         />
         {errors.password_confirmation && (
-          <div aria-live="polite">
-            <small
-              id="register-password-confirmation-error"
-              className="auth-message auth-error"
-            >
-              {errors.password_confirmation[0]}
-            </small>
-          </div>
+          <small
+            id="register-password-confirmation-error"
+            className="auth-message auth-error"
+          >
+            {errors.password_confirmation[0]}
+          </small>
         )}
       </div>
 
