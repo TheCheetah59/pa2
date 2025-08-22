@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -33,7 +34,7 @@ class AuthController extends Controller
         $user = User::create([
             'name'              => $name,
             'email'             => $email,
-            'password'          => Hash::make($data['password']),
+            'password'          => Hash::make($data['password']), // OK si pas de cast "hashed" sur User
             'role'              => $role,
             'email_verified_at' => null,
         ]);
@@ -67,24 +68,45 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            return response()->json(['message' => 'Identifiants invalides.'], 422);
+        // Normalise l'email (évite les échecs silencieux liés aux espaces/majuscules)
+        $email = Str::lower(trim($credentials['email']));
+        $pass  = $credentials['password'];
+
+        // 1) Tentative standard sur le guard "web" (provider "users")
+        if (Auth::guard('web')->attempt(['email' => $email, 'password' => $pass], $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            /** @var \App\Models\User $user */
+            $user = $request->user();
+
+            if (! $user->hasVerifiedEmail()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return response()->json(['message' => 'Veuillez vérifier votre email avant de vous connecter.'], 423);
+            }
+
+            return response()->noContent(); // 204
         }
 
-        $request->session()->regenerate();
+        // 2) Fallback explicite : on vérifie manuellement le hash et on connecte
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        if ($user && Hash::check($pass, $user->password)) {
+            Auth::guard('web')->login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
 
-        /** @var \App\Models\User $user */
-        $user = $request->user();
+            if (! $user->hasVerifiedEmail()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return response()->json(['message' => 'Veuillez vérifier votre email avant de vous connecter.'], 423);
+            }
 
-        if (! $user->hasVerifiedEmail()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return response()->json(['message' => 'Veuillez vérifier votre email avant de vous connecter.'], 423);
+            return response()->noContent(); // 204
         }
 
-        return response()->noContent(); // 204
+        return response()->json(['message' => 'Identifiants invalides.'], 422);
     }
 
     /**

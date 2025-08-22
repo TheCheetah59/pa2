@@ -5,70 +5,64 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\JsonResponse;
-use App\Models\Customer;
 
 class CustomerAuthController extends Controller
 {
-    /**
-     * Inscription CLIENT avec login immédiat (session)
-     */
-    public function register(Request $request): JsonResponse
-    {
-        $data = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:customers,email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $customer = Customer::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
-
-        Auth::guard('customer')->login($customer);
-        $request->session()->regenerate();
-
-        return response()->json([
-            'customer' => $customer->only(['id','name','email']),
-        ], 201);
-    }
-
-
-    /**
-     * Connexion CLIENT via session (Sanctum + cookies)
-     */
-    public function login(Request $request): JsonResponse
+    // POST /api/customer/login
+    public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
+            'email'    => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
-        if (!Auth::guard('customer')->attempt($credentials, true)) {
+        // IMPORTANT : utiliser le guard web (provider 'users')
+        if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
         $request->session()->regenerate();
 
-        $customer = Auth::guard('customer')->user();
+        /** @var \App\Models\User $user */
+        $user = $request->user(); // via guard web
 
-        return response()->json([
-            'customer' => $customer->only(['id','name','email']),
-        ]);
+        // Email non vérifié ?
+        if (! $user->hasVerifiedEmail()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return response()->json(['message' => 'Veuillez vérifier votre email'], 423);
+        }
+
+        // Vérifier qu'il s'agit bien d'un client
+        if (! in_array($user->role, ['client'])) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return response()->json(['message' => 'Rôle non autorisé pour cette route'], 403);
+        }
+
+        return response()->noContent(); // 204
     }
 
-    /**
-     * Déconnexion CLIENT (session)
-     */
-    public function logout(Request $request): JsonResponse
+    // POST /api/customer/logout
+    public function logout(Request $request)
     {
-        Auth::guard('customer')->logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        return response()->noContent();
+    }
 
-        return response()->json(['message' => 'Déconnexion réussie']);
+    // GET /api/customer/me
+    public function me(Request $request)
+    {
+        $u = $request->user();
+        return response()->json([
+            'id' => (int) $u->id,
+            'name' => (string) ($u->name ?? ''),
+            'email' => (string) $u->email,
+            'role' => (string) ($u->role ?? 'client'),
+        ], 200, ['Content-Type' => 'application/json; charset=utf-8'], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }

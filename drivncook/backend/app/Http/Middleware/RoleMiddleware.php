@@ -9,14 +9,19 @@ use Symfony\Component\HttpFoundation\Response;
 class RoleMiddleware
 {
     /**
-     * Handle an incoming request.
+     * Vérifie que l'utilisateur a l'un des rôles passés.
+     * Usage: ->middleware('role:client') ou ->middleware('role:admin,franchisee')
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = $request->user();
 
-        if (!$user || $user->role !== $role) {
-            abort(403);
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        if (! in_array($user->role, $roles, true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         return $next($request);

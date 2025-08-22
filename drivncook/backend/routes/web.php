@@ -28,23 +28,46 @@ Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookie
 Route::post('/login',  [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
-// 3) Vérification d'email Laravel (MustVerifyEmail) - VERSION CORRIGÉE
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+// 3) Vérification d'email - VERSION MANUELLE SANS AUTH
+Route::get('/email/verify/{id}/{hash}', function ($id, $hash, Request $request) {
     try {
-        $request->fulfill(); // marque l'email comme vérifié
-        $front = trim(env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173')));
-        $front = rtrim($front, "/");
-
+        // Vérifier la signature manuellement
+        if (! $request->hasValidSignature()) {
+            abort(401, 'Invalid verification link');
+        }
         
-        // Redirection simple sans urlencode pour éviter les problèmes de headers
+        // Trouver l'utilisateur par ID
+        $user = \App\Models\User::find($id);
+        
+        if (! $user) {
+            abort(404, 'User not found');
+        }
+        
+        // Vérifier le hash
+        if (! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            abort(401, 'Invalid verification hash');
+        }
+        
+        // Marquer comme vérifié si pas déjà fait
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+        
+        // Nettoyage complet des caractères problématiques
+        $front = env('APP_FRONT_URL', 'http://localhost:5173');
+        $front = preg_replace("/[\r\n\t\s]+$/", '', $front);
+        $front = rtrim($front, '/');
+        
         return redirect()->to($front.'/activation/callback?status=verified');
         
     } catch (\Exception $e) {
-        $front = trim(env('APP_FRONT_URL', env('FRONTEND_URL', 'http://localhost:5173')));
-        $front = rtrim($front, "/");
+        $front = env('APP_FRONT_URL', 'http://localhost:5173');
+        $front = preg_replace("/[\r\n\t\s]+$/", '', $front);
+        $front = rtrim($front, '/');
+        
         return redirect()->to($front.'/activation/callback?status=error');
     }
-})->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
+})->middleware(['throttle:6,1'])->name('verification.verify');
 
 // (Optionnel) Renvoyer l'email de vérification (user connecté)
 Route::post('/email/verification-notification', function (Request $request) {

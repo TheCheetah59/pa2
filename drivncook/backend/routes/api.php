@@ -7,7 +7,6 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 
 // Controllers Auth
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CustomerAuthController;
 
 // Controllers Business
 use App\Http\Controllers\EventRegistrationController;
@@ -40,7 +39,6 @@ use App\Http\Controllers\ReportController;
 | Routes de test et debug
 |--------------------------------------------------------------------------
 */
-
 if (config('debug.enabled')) {
     Route::get('/test', fn () => response()->json(['message' => 'API works']));
 }
@@ -51,7 +49,7 @@ if (config('debug.enabled')) {
 |--------------------------------------------------------------------------
 */
 
-// Consultation publique des menus et plats
+// Consultation publique des menus, plats, événements
 Route::apiResource('menus', MenuController::class)->only(['index', 'show']);
 Route::apiResource('dishes', DishController::class)->only(['index', 'show']);
 Route::apiResource('events', EventController::class)->only(['index']);
@@ -64,26 +62,23 @@ Route::post('/contact', [ContactController::class, 'store']);
 
 /*
 |--------------------------------------------------------------------------
-| Authentification SPA (Sanctum) - Guard "web/sanctum"
-| Pour les utilisateurs admin/franchise via React
+| Authentification SPA (Sanctum) - comptes en table `users`
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('auth')->group(function () {
-    
-    // Routes publiques avec middleware web pour les sessions/cookies
-    Route::middleware(['web'])->group(function () {
-        
+
+    // Public : session/cookies via middleware web
+    Route::middleware('web')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-        
-        // Renvoyer l'email de vérification
+        Route::post('/login',    [AuthController::class, 'login']);
+
+        // Renvoyer l’email de vérification (limité)
         Route::post('/email/resend', function (Request $request) {
             $request->validate([
                 'email' => ['required', 'email', 'exists:users,email'],
             ]);
 
-            // Rate limiting : 3 tentatives par 60s
+            // Rate limiting : 3 tentatives / 60s par IP+email
             $key = 'resend:' . sha1($request->ip() . $request->input('email'));
             if (RateLimiter::tooManyAttempts($key, 3)) {
                 throw new ThrottleRequestsException('Trop de tentatives. Réessayez plus tard.');
@@ -91,65 +86,57 @@ Route::prefix('auth')->group(function () {
             RateLimiter::hit($key, 60);
 
             $user = \App\Models\User::whereEmail($request->input('email'))->first();
-
-            if ($user && !$user->hasVerifiedEmail()) {
+            if ($user && ! $user->hasVerifiedEmail()) {
                 $user->sendEmailVerificationNotification();
             }
 
-            return response()->json([
-                'message' => 'Si un compte existe, un email de vérification a été renvoyé.'
-            ]);
+            return response()->json(['message' => 'Si un compte existe, un email de vérification a été renvoyé.']);
         })->middleware('guest');
-        
     });
 
-    // Routes protégées (nécessitent une authentification)
-    Route::middleware(['auth:sanctum'])->group(function () {
+    // Protégé : authentifié (Sanctum)
+    Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/me', [AuthController::class, 'me']);
-        Route::get('/admin', [AuthController::class, 'admin'])->middleware('can:admin-only');
+        Route::get('/me',      [AuthController::class, 'me']);
+
+        // Décommente si tu as bien une méthode admin() et une Gate/Policy 'admin-only'
+        // Route::get('/admin',   [AuthController::class, 'admin'])->middleware('can:admin-only');
     });
-    
 });
 
 /*
 |--------------------------------------------------------------------------
-| Authentification Client (Guard "customer")
-| Pour les clients finaux du site
+| Alias "customer" (facultatif) — réutilise AuthController
+| On conserve une URL dédiée tout en gardant le même guard `web/users`.
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('customer')->group(function () {
-    
-    // Routes publiques
-    Route::post('/login', [CustomerAuthController::class, 'login']);
-    
-    // Routes protégées (client connecté)
-    Route::middleware(['auth:customer'])->group(function () {
-        Route::post('/logout', [CustomerAuthController::class, 'logout']);
-        Route::get('/profile', fn (Request $request) => $request->user('customer'));
+
+    // Public : login client via session/cookies
+    Route::middleware('web')->post('/login', [AuthController::class, 'login']);
+
+    // Espace client connecté : Sanctum + rôle 'client'
+    Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/profile', fn (Request $request) => $request->user());
     });
-    
 });
 
 /*
 |--------------------------------------------------------------------------
-| Paiements (Sanctum protégé)
+| Paiements (protégé Sanctum)
 |--------------------------------------------------------------------------
 */
-
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{order}/payment-intent', [PaymentController::class, 'paymentIntent']);
     Route::post('/orders/{order}/confirm-payment', [PaymentController::class, 'confirmPayment']);
 });
 
 /*
 |--------------------------------------------------------------------------
-| Administration (Guard "sanctum" + Role Admin)
-| Toutes les routes d'administration
+| Administration (Sanctum + activation + rôle admin)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
     ->prefix('admin')
     ->group(function () {
@@ -157,86 +144,82 @@ Route::middleware(['auth:sanctum', 'activated', 'role:admin'])
         // Dashboard
         Route::get('/dashboard', fn () => response()->json(['message' => 'Bienvenue Admin']));
 
-        // Gestion des franchisés
+        // Gestion franchisés
         Route::apiResource('franchisees', FranchiseeController::class);
         Route::get('/franchisees/{id}/pdf', [FranchiseeController::class, 'generatePdf']);
 
-        // Gestion des camions et maintenances
+        // Camions & maintenances
         Route::apiResource('trucks', TruckController::class);
         Route::apiResource('truck-maintenances', TruckMaintenanceController::class);
 
-        // Gestion du stock
+        // Stock
         Route::apiResource('warehouses', WarehouseController::class);
         Route::apiResource('stock-items', StockItemController::class);
         Route::apiResource('stock-orders', StockOrderController::class);
         Route::apiResource('stock-order-items', StockOrderItemController::class);
 
-        // Gestion des ventes
+        // Ventes
         Route::apiResource('sales', SaleController::class);
         Route::get('/sales/pdf', [SaleController::class, 'generatePdf']);
 
-        // Gestion des utilisateurs
+        // Utilisateurs
         Route::get('/users', [AdminController::class, 'index']);
-        Route::patch('/users/{user}/activate', [AdminController::class, 'activate']);
-        Route::patch('/users/{user}/suspend', [AdminController::class, 'suspend']);
+        Route::patch('/users/{user}/activate',   [AdminController::class, 'activate']);
+        Route::patch('/users/{user}/suspend',    [AdminController::class, 'suspend']);
         Route::patch('/users/{user}/make-admin', [AdminController::class, 'makeAdmin']);
 
-        // Gestion des menus et plats (administration)
+        // Menus & plats (admin)
         Route::apiResource('menus', MenuController::class)->except(['index', 'show']);
         Route::apiResource('dishes', DishController::class)->except(['index', 'show']);
 
-        // Gestion des commandes (administration)
+        // Commandes (admin)
         Route::apiResource('orders', OrderController::class);
         Route::apiResource('order-items', OrderItemController::class);
 
-        // Gestion des cartes de fidélité
+        // Cartes de fidélité
         Route::apiResource('loyalty-cards', LoyaltyCardController::class);
 
-        // Gestion de la newsletter
+        // Newsletter (admin)
         Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['index']);
         Route::post('/newsletters/send', [NewsletterController::class, 'send']);
 
-        // Gestion des événements (administration)
+        // Événements (admin)
         Route::apiResource('events', EventController::class)->except(['index']);
         Route::get('/events/{event}/participants', [EventRegistrationController::class, 'eventParticipants']);
 
-        // Gestion des clients (consultation)
+        // Clients (consultation)
         Route::apiResource('customers', CustomerController::class)->only(['index']);
 
         // Rapports PDF
         Route::get('/reports/franchisees.pdf', [ReportController::class, 'franchiseesPdf']);
         Route::get('/reports/franchisees/{id}.pdf', [ReportController::class, 'franchiseePdf']);
-        
     });
 
 /*
 |--------------------------------------------------------------------------
-| Espace Client (Guard "customer")
-| Routes pour les clients connectés
+| Espace Client — routes applicatives (Sanctum + rôle client)
 |--------------------------------------------------------------------------
 */
+Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
 
-Route::middleware(['auth:customer'])->group(function () {
-
-    // Gestion du profil client
+    // Profil client
     Route::apiResource('customers', CustomerController::class)->only(['show', 'update', 'destroy']);
 
     // Commandes du client
     Route::apiResource('customer-orders', CustomerOrderController::class)->only(['index', 'store', 'show']);
 
-    // Carte de fidélité du client
+    // Carte de fidélité
     Route::get('/my-loyalty-card', [LoyaltyCardController::class, 'show']);
     Route::put('/my-loyalty-card', [LoyaltyCardController::class, 'update']);
 
-    // Événements du client
+    // Événements client
     Route::get('/my-events', [EventRegistrationController::class, 'myEvents']);
     Route::post('/events/{event}/register', [EventRegistrationController::class, 'register']);
     Route::delete('/events/{event}/unregister', [EventRegistrationController::class, 'unregister']);
 
-    // Feedback client
+    // Feedback
     Route::apiResource('feedback', CustomerFeedbackController::class)->only(['store']);
 
-    // Newsletter (inscription client)
+    // Newsletter (opt-in client)
     Route::apiResource('newsletter-logs', NewsletterLogController::class)->only(['store']);
-    
 });

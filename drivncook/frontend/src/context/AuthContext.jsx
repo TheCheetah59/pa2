@@ -11,12 +11,19 @@ import api from "../axios"; // axios.create({ baseURL: VITE_API_URL, withCredent
 
 /**
  * Contrat des endpoints côté backend :
+ *
+ * SANCTUM (Admin/Franchise) :
  * - GET    /sanctum/csrf-cookie
  * - POST   /api/auth/login            -> 204 (No Content)
  * - POST   /api/auth/logout           -> 204
  * - POST   /api/auth/register         -> 201 { message, user? }
  * - GET    /api/auth/me               -> 200 { id, name, email, role }
  * - POST   /api/auth/email/resend     -> 200 { message }
+ *
+ * CUSTOMER (Guard customer) :
+ * - POST   /api/customer/login        -> 204 (No Content)
+ * - POST   /api/customer/logout       -> 204
+ * - GET    /api/customer/profile      -> 200 { id, name, email, role }
  *
  * NB : login/logout doivent être sous middleware "web" côté Laravel (sessions/CSRF).
  */
@@ -33,29 +40,74 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
+
+  const [userType, setUserType] = useState(() => {
+    try {
+      return localStorage.getItem("userType") || "admin"; // "admin" ou "customer"
+    } catch {
+      return "admin";
+    }
+  });
+
   const [loading, setLoading] = useState(true);
 
   // --- helpers ----------------------------------------------------------------
-  const saveUser = useCallback((u) => {
+  const saveUser = useCallback((u, type = "admin") => {
     setUser(u);
+    setUserType(type);
+
     try {
-      if (u) localStorage.setItem("user", JSON.stringify(u));
-      else localStorage.removeItem("user");
+      if (u) {
+        localStorage.setItem("user", JSON.stringify(u));
+        localStorage.setItem("userType", type);
+      } else {
+        localStorage.removeItem("user");
+        localStorage.removeItem("userType");
+      }
     } catch {
       // ignore quota/JSON issues
     }
   }, []);
 
-  const me = useCallback(async () => {
-    // Récupère l'utilisateur courant (protégé par auth:sanctum)
+  // --- API calls différenciées par type d'utilisateur -----------------------
+
+  /**
+   * Récupère l'utilisateur admin/franchise (protégé par auth:sanctum)
+   */
+  const getAdminUser = useCallback(async () => {
     const { data } = await api.get("/api/auth/me", {
       headers: { Accept: "application/json" },
-      // Évite la mise en cache agressive de certains proxys
       params: { _t: Date.now() },
     });
-    saveUser(data);
     return data;
-  }, [saveUser]);
+  }, []);
+
+  /**
+   * Récupère l'utilisateur customer (protégé par auth:customer)
+   */
+  const getCustomerUser = useCallback(async () => {
+    const { data } = await api.get("/api/customer/profile", {
+      headers: { Accept: "application/json" },
+      params: { _t: Date.now() },
+    });
+    return data;
+  }, []);
+
+  /**
+   * Récupère l'utilisateur selon le type stocké
+   */
+  const me = useCallback(async () => {
+    let data;
+
+    if (userType === "customer") {
+      data = await getCustomerUser();
+    } else {
+      data = await getAdminUser();
+    }
+
+    saveUser(data, userType);
+    return data;
+  }, [userType, getAdminUser, getCustomerUser, saveUser]);
 
   // --- restauration de session au démarrage ----------------------------------
   useEffect(() => {
@@ -72,10 +124,34 @@ export const AuthProvider = ({ children }) => {
 
     (async () => {
       try {
-        // Si la session existe côté serveur, /me renverra 200 avec l'utilisateur
-        const data = await me();
-        if (!alive) return;
-        saveUser(data);
+        // Essayer de récupérer l'utilisateur selon le type stocké
+        if (userType === "customer") {
+          try {
+            const data = await getCustomerUser();
+            if (alive) saveUser(data, "customer");
+          } catch (customerErr) {
+            // Si échec customer, essayer admin
+            try {
+              const data = await getAdminUser();
+              if (alive) saveUser(data, "admin");
+            } catch (adminErr) {
+              if (alive) saveUser(null);
+            }
+          }
+        } else {
+          try {
+            const data = await getAdminUser();
+            if (alive) saveUser(data, "admin");
+          } catch (adminErr) {
+            // Si échec admin, essayer customer
+            try {
+              const data = await getCustomerUser();
+              if (alive) saveUser(data, "customer");
+            } catch (customerErr) {
+              if (alive) saveUser(null);
+            }
+          }
+        }
       } catch (err) {
         // 401 attendu si pas connecté
         if (alive) saveUser(null);
@@ -87,59 +163,98 @@ export const AuthProvider = ({ children }) => {
     return () => {
       alive = false;
     };
-  }, [me, saveUser]);
+  }, [userType, getAdminUser, getCustomerUser, saveUser]);
 
   // --- Auth API ---------------------------------------------------------------
 
   /**
-   * Login (Sanctum, session cookie)
+   * Login unifié pour les deux types d'utilisateurs
    * @param {{ email: string, password: string }} credentials
-   * @param {boolean} isCustomer Utilise /api/customer/login si vrai (si tu as 2 endpoints)
-   * @returns {Promise<object>} Utilisateur courant (issu de /api/auth/me)
+   * @param {boolean} isCustomer Si vrai, utilise le guard customer
+   * @returns {Promise<object>} Utilisateur courant
    */
   const login = useCallback(
     async (credentials, isCustomer = false) => {
+      console.log("🔍 Login attempt:", {
+        isCustomer,
+        email: credentials.email,
+      });
+
       // Étape 1 : préparer le cookie XSRF (selon config Sanctum)
       try {
         await api.get("/sanctum/csrf-cookie");
-      } catch {
-        // Selon la config, l'appel peut déjà être fait par un autre écran — on ignore
+        console.log("✅ CSRF cookie obtained");
+      } catch (csrfErr) {
+        console.warn("⚠️ CSRF cookie failed:", csrfErr);
       }
 
-      // Étape 2 : POST login (retour attendu 204 No Content)
-      const url = isCustomer ? "/api/customer/login" : "/api/auth/login";
+      const loginUrl = isCustomer ? "/api/customer/login" : "/api/auth/login";
+      const type = isCustomer ? "customer" : "admin";
+
+      console.log("🚀 Calling login URL:", loginUrl);
+
       try {
-        await api.post(url, credentials, {
+        // Étape 2 : POST login (retour attendu 204 No Content)
+        const response = await api.post(loginUrl, credentials, {
           headers: { Accept: "application/json" },
         });
 
-        // Étape 3 : récupérer l'utilisateur courant
-        const current = await me();
+        console.log("✅ Login successful:", response.status);
+
+        // Étape 3 : récupérer l'utilisateur selon le type
+        let current;
+        if (isCustomer) {
+          current = await getCustomerUser();
+        } else {
+          current = await getAdminUser();
+        }
+
+        console.log("✅ User retrieved:", current);
+
+        // Sauvegarder avec le bon type
+        saveUser(current, type);
         return current;
       } catch (err) {
-        // Ne pas wrapper l'erreur pour conserver err.response.status et le message backend
+        console.error(
+          "❌ Login failed:",
+          err.response?.status,
+          err.response?.data
+        );
         throw err;
       }
     },
-    [me]
+    [getAdminUser, getCustomerUser, saveUser]
   );
 
   /**
-   * Logout (toujours tenter côté serveur, puis on nettoie le cache local)
+   * Logout unifié
    */
   const logout = useCallback(async () => {
     try {
-      const isClient = user?.role === "client" || user?.role === "customer";
-      const url = isClient ? "/api/customer/logout" : "/api/auth/logout";
-      await api.post(url, {}, { headers: { Accept: "application/json" } });
+      const logoutUrl =
+        userType === "customer" ? "/api/customer/logout" : "/api/auth/logout";
+
+      console.log("🚪 Logout from:", logoutUrl);
+
+      await api.post(
+        logoutUrl,
+        {},
+        {
+          headers: { Accept: "application/json" },
+        }
+      );
+
+      console.log("✅ Logout successful");
+    } catch (err) {
+      console.warn("⚠️ Logout error (cleaning anyway):", err);
     } finally {
       // On purge quoi qu'il arrive pour éviter les incohérences d'UI
       saveUser(null);
     }
-  }, [user, saveUser]);
+  }, [userType, saveUser]);
 
   /**
-   * Register — ne connecte PAS l'utilisateur
+   * Register — ne connecte PAS l'utilisateur (uniquement pour admin/franchise)
    * @param {{ name?: string, email: string, password: string, password_confirmation: string, role?: string }} payload
    * @returns {Promise<{ message: string, user?: object }>}
    */
@@ -149,6 +264,7 @@ export const AuthProvider = ({ children }) => {
       try {
         await api.get("/sanctum/csrf-cookie");
       } catch {}
+
       const { data } = await api.post("/api/auth/register", payload, {
         headers: {
           "Content-Type": "application/json",
@@ -189,23 +305,112 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Inscription client (création de compte customer)
+   * @param {{ name: string, email: string, password: string, password_confirmation: string }} payload
+   * @returns {Promise<{ message: string, user?: object }>}
+   */
+  const registerCustomer = useCallback(async (payload) => {
+    try {
+      try {
+        await api.get("/sanctum/csrf-cookie");
+      } catch {}
+
+      const { data } = await api.post("/api/customers", payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+
+      return {
+        message: data?.message ?? "Compte client créé avec succès.",
+        user: data?.user,
+      };
+    } catch (err) {
+      throw err;
+    }
+  }, []);
+
+  // --- Utilitaires ------------------------------------------------------------
+
+  /**
+   * Vérifie si l'utilisateur actuel est un admin
+   */
+  const isAdmin = useMemo(() => {
+    return userType === "admin" && user?.role === "admin";
+  }, [userType, user]);
+
+  /**
+   * Vérifie si l'utilisateur actuel est un franchisé
+   */
+  const isFranchisee = useMemo(() => {
+    return (
+      userType === "admin" &&
+      (user?.role === "franchisee" || user?.role === "franchise")
+    );
+  }, [userType, user]);
+
+  /**
+   * Vérifie si l'utilisateur actuel est un client
+   */
+  const isCustomer = useMemo(() => {
+    return userType === "customer";
+  }, [userType]);
+
   const value = useMemo(
     () => ({
+      // État
       user,
+      userType,
+      loading,
+
+      // Actions
+      login,
+      logout,
+      register,
+      registerCustomer,
+      resendActivation,
+      me,
+
+      // Utilitaires
+      isReady: !loading,
+      isAuthenticated: !!user,
+      isAdmin,
+      isFranchisee,
+      isCustomer,
+
+      // Types de redirection selon le rôle
+      getRedirectPath: () => {
+        if (isAdmin) return "/admin";
+        if (isFranchisee) return "/franchise";
+        if (isCustomer) return "/menu";
+        return "/";
+      },
+    }),
+    [
+      user,
+      userType,
       loading,
       login,
       logout,
       register,
+      registerCustomer,
       resendActivation,
       me,
-      // utilitaire : true quand on a chargé l’état initial (utile pour ProtectedRoute)
-      isReady: !loading,
-      isAuthenticated: !!user,
-    }),
-    [user, loading, login, logout, register, resendActivation, me]
+      isAdmin,
+      isFranchisee,
+      isCustomer,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth doit être utilisé dans un AuthProvider");
+  }
+  return context;
+};

@@ -39,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'is_activated' => 'boolean',
         'activation_token_expires_at' => 'datetime',
+        'password' => 'hashed',   
     ];
 
     public function franchisee()
